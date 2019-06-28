@@ -1,0 +1,42 @@
+Package: twittercache
+Title: Sample the Twitter Graph and Cache It Locally
+Version: 0.0.0.9001
+Authors@R: 
+    person(given = "Alex",
+           family = "Hayes",
+           role = c("aut", "cre"),
+           email = "alexpghayes@gmail.com",
+           comment = c(ORCID = "0000-0002-4985-5160"))
+Description: Facilitates robust sampling of the Twitter graph by saving
+  data about observed nodes into a data cache. Requests for new nodes are
+  smart and do not waste API requests on nodes already in the cache. The
+  cache can then be exported to a number of data structures more
+  appropriate for network analysis. Automatically manages multiple tokens
+  to speed up sampling with staying with API rate limits.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
+Imports: 
+    rtweet,
+    dplyr,
+    logger,
+    glue,
+    tibble,
+    purrr,
+    igraph,
+    tidygraph
+Collate: 
+    'cache.R'
+    'export.R'
+    'network.R'
+    'visit.R'
+    'request.R'
+    'tokens.R'
+    'twittergraph-package.R'
+    'utils.R'
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
