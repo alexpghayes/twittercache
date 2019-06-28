@@ -40,3 +40,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://github.com/alexpghayes/twittercache
+BugReports: https://github.com/alexpghayes/twittercache/issues
