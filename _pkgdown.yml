@@ -1,1 +1,40 @@
 destination: docs
+
+template:
+  params:
+    bootswatch: paper
+
+reference:
+  - title: Core functions
+    desc: ~
+    contents:
+      - '`register_token`'
+      - '`request`'
+      - '`sample_twitter_graph`'
+      - '`get_network_as_tidygraph`'
+  - title: Managing requests
+    desc: ~
+    contents:
+      - '`clear_requests`'
+      - '`get_requests`'
+      - '`request`'
+  - title: Managing failures
+    desc: ~
+    contents:
+      - '`clear_failures`'
+      - '`get_failures`'
+      - '`rerequest_failures`'
+  - title: Managing tokens
+    desc: ~
+    contents:
+      - '`clear_tokens`'
+      - '`get_number_of_tokens`'
+      - '`register_token`'
+  - title: Managing user data
+    desc: ~
+    contents:
+      - '`clean_cache`'
+      - '`clear_cache`'
+      - '`export_cache`'
+      - '`import_cache`'
+      - '`user_in_cache`'
