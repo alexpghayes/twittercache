@@ -21,6 +21,11 @@ knitr::opts_chunk$set(
 
 `twittercache` facilitates robust sampling of the Twitter network. The basic idea is to save any data into a local cache as you as you get it. `twittercache` is build on top of [`rtweet`](http://rtweet.info/).
 
+## NAMES
+
+- request queue
+- failure log
+
 ## Installation
 
 You can install the development version of `twittercache` with:
@@ -116,7 +121,7 @@ request("not_a_real_twitter_handle")
 To see the current list of requests, use 
 
 ```{r}
-get_current_requests()
+get_requests()
 ```
 
 This returns a character vector of user IDs. It's mostly for internal use at the moment and I might write a nicer wrapper around it that returns screen names at some point.
@@ -152,7 +157,7 @@ On occasion `rtweet()` or the Twitter API will just explode and won't be able to
 To see nodes that `sample_twitter_graph()` managed to sample, run
 
 ```{r}
-get_current_failures()
+get_failures()
 ```
 
 which again returns a character vector of user IDs.

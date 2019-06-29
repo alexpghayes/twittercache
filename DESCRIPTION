@@ -1,6 +1,6 @@
 Package: twittercache
 Title: Sample the Twitter Graph and Cache It Locally
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     person(given = "Alex",
            family = "Hayes",
@@ -26,10 +26,13 @@ Imports:
     tibble,
     purrr,
     igraph,
-    tidygraph
+    tidygraph,
+    usethis
 Collate: 
+    'api_calls.R'
     'cache.R'
     'export.R'
+    'failures.R'
     'network.R'
     'visit.R'
     'request.R'

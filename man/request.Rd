@@ -2,32 +2,27 @@
 % Please edit documentation in R/request.R
 \name{request}
 \alias{request}
-\title{Slate users for addition to the cache}
+\title{Add users to the request queue}
 \usage{
 request(screen_names, neighborhood = FALSE)
 }
 \arguments{
-\item{screen_names}{A (character?) vector of screen names or user ids
-to slate for addition to the cache.}
+\item{screen_names}{A characters vector of screen names or user ids
+to the to the request queue.}
 
-\item{neighborhood}{Logical indicating whether the neighbors of each
-user should be added as well. Neighbors include both friends and
-followers. Defaults to \code{FALSE}.}
-}
-\value{
-Nothing, called for side effects
+\item{neighborhood}{Logical indicating whether the neighbors (both
+friends and followers) of the users in \code{screen_names} should be
+added the request queue as well. Defaults to \code{FALSE}.}
 }
 \description{
-Slate users for addition to the cache
+Note that this only adds users to the request queue, but
+does not do any sampling of the Twitter graph itself. To
+sample the Twitter graph, run \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}.
 }
-\examples{
+\seealso{
+\code{\link[=sample_twitter_graph]{sample_twitter_graph()}}
 
-\dontrun{
-
-users <- c("blahasjaf80920930", "tim", "alexpghayes", "alexgphayes")
-request(users, neighborhood = TRUE)
-get_current_requests()
-
+Other managing requests: \code{\link{clear_requests}},
+  \code{\link{get_requests}}
 }
-
-}
+\concept{managing requests}

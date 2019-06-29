@@ -1,5 +1,4 @@
 #' @keywords internal
-#' @importFrom rtweet get_friends get_followers lookup_users
 #' @importFrom glue glue
 "_PACKAGE"
 

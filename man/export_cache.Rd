@@ -15,6 +15,3 @@ elsewhere. Exported cache includes both twitter data
 and registered tokens. Import the cache on a different
 computer with \code{\link[=import_cache]{import_cache()}}.
 }
-\seealso{
-import_cache
-}

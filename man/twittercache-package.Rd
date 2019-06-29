@@ -13,6 +13,14 @@ Facilitates robust sampling of the Twitter graph by saving
   appropriate for network analysis. Automatically manages multiple tokens
   to speed up sampling with staying with API rate limits.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/alexpghayes/twittercache}
+  \item Report bugs at \url{https://github.com/alexpghayes/twittercache/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Alex Hayes \email{alexpghayes@gmail.com} (0000-0002-4985-5160)
 

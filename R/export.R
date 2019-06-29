@@ -9,7 +9,6 @@
 #'
 #' @export
 #'
-#' @seealso import_cache
 export_cache <- function(path) {
   cache_dir <- get_cache_dir()
   cache_files <- list.files(cache_dir, full.names = TRUE)
@@ -30,21 +29,5 @@ export_cache <- function(path) {
 #'
 #' @export
 import_cache <- function(path, overwrite = FALSE) {
-
-  cache_dir <- get_cache_dir()
-
-  # TODO: is this a correct use of tempdir()?
-
-  # unzip into a tmp folder
-  unzip(path, exdir = tempdir())
-
-  # TODO
-
-  # for each token, try to register it
-
-  # for each files, try to copy if it doesn't already exist
-
-  # tell user:
-  #   - how many new users were added to the cache
-  #   - how many new tokens were added to the cache
+  .NotYetImplemented()
 }

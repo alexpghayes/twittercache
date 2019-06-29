@@ -9,6 +9,10 @@ get_network_as_tidygraph(core_only = FALSE)
 \arguments{
 \item{neighbors_only}{Logical indicating whether nodes TODO}
 }
+\value{
+The network as a \code{\link[=tbl_graph]{tbl_graph()}} object. Removes protected nodes.
+}
 \description{
-Removes protected nodes.
+Takes a moment. We recommend saving the resulting graph in a \code{.rds}
+file for fast access later on.
 }

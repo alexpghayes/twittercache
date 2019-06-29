@@ -4,17 +4,26 @@
 \alias{visit}
 \title{Visit a node in the twitter graph and add it to the cache}
 \usage{
-visit(node, force = FALSE, token = NULL)
+visit(node)
 }
 \arguments{
 \item{node}{The user id of a Twitter user. \emph{Not} the screen name.}
-
-\item{force}{Logical indicating if the data for \code{node} should be
-updated even if \code{node} is already in the cache. Defaults to \code{FALSE}.}
-}
-\value{
-Nothing, called for side effects.
 }
 \description{
-Visit a node in the twitter graph and add it to the cache
+The logic here is fundamentally oriented around visiting
+a single user at a time, and adding them to the cache as
+soon as we have their data.
 }
+\details{
+Note that since the logic here is fundamentally about
+sampling every user, if we visit an entire neighborhood
+we'll pick up most edges twitter, once from each accompanying
+node.
+
+We only take the first 5,000 friends and 5,000 followers
+for the time being. The idea is that for important edges,
+the edge will get picked up from the other node. This may
+miss out on edges between node both with huge follower
+and following counts, but who cares about those.
+}
+\keyword{internal}
