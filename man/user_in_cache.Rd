@@ -4,14 +4,18 @@
 \alias{user_in_cache}
 \title{Check if a user is in the cache}
 \usage{
-user_in_cache(user)
+user_in_cache(users)
 }
 \arguments{
-\item{node}{Either the screen name of user ID of a Twitter user.}
+\item{users}{A vector screen names or user IDs of Twitter users.}
 }
 \value{
-Either \code{TRUE} or \code{FALSE}.
+A logical vector.
 }
 \description{
-TODO: Not vectorized (yet)
+Check if a user is in the cache
 }
+\seealso{
+Other cache management: \code{\link{clear_cache}}
+}
+\concept{cache management}

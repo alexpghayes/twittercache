@@ -15,6 +15,9 @@ data in the cache file will overwrite data in the local
 cache. Defaults to \code{FALSE}.}
 }
 \description{
+Not yet implemented.
+}
+\details{
 Adds users and token from the zipped cache file to the
 local cache.
 }

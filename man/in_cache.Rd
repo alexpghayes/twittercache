@@ -2,7 +2,7 @@
 % Please edit documentation in R/cache.R
 \name{in_cache}
 \alias{in_cache}
-\title{Check if a node is in the cache}
+\title{Check if nodes are in the cache}
 \usage{
 in_cache(nodes)
 }
@@ -13,6 +13,6 @@ in_cache(nodes)
 A logical vector.
 }
 \description{
-Check if a node is in the cache
+Check if nodes are in the cache
 }
 \keyword{internal}

@@ -1,56 +1,20 @@
 # these functions heavily inspired by code from @fchen365
 
-# TODO: vectorize all these / make bigger requests instead of just
-# a single request
-
-# TODO: some sort of safe_lookup_users() at some point
-
-#' Get the user IDs of all nodes in a user's neighborhood
-#'
-#' @param node Either the screen name of user ID of a Twitter user.
-#'
-#' @return A character vector of user IDs. May be empty if the user
-#'   doesn't follow anyone.
-#'
-#' @export
-#'
-get_neighborhood <- function(user) {
-  .NotYetImplemented()
-}
-
-#' Title
-#'
-#' @return TODO
-#' @export
-#' @importFrom dplyr filter %>%
-#'
-#' @family API call
-#'
 check_rate_limits <- function() {
 
   tokens <- get_all_tokens()
 
   rtweet::rate_limits(tokens) %>%
-    filter(query %in% c("friends/ids", "followers/ids", "users/lookup"))
+    dplyr::filter(query %in% c("friends/ids", "followers/ids", "users/lookup"))
 
 }
 
-#' Title
-#'
-#' @param query TODO
-#'
-#' @return TODO
-#' @export
-#' @importFrom dplyr filter %>%
-#'
-#' @family API call
-#'
 find_token <- function(query = "friends/ids") {
 
   tokens <- get_all_tokens()
 
   limits <- rtweet::rate_limits(tokens) %>%
-    filter(query == !!query)
+    dplyr::filter(query == !!query)
 
   calls_remaining <- any(limits$remaining > 0)
 
@@ -67,16 +31,6 @@ find_token <- function(query = "friends/ids") {
   tokens[[index]]
 }
 
-#' Title
-#'
-#' @param node
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @family API call
-#'
 safe_get_friends <- function(node, ...) {
 
   stopifnot(length(node) == 1)
@@ -91,16 +45,6 @@ safe_get_friends <- function(node, ...) {
   friends
 }
 
-#' Title
-#'
-#' @param node
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @family API call
-#'
 safe_get_followers <- function(node, ...) {
 
   stopifnot(length(node) == 1)
@@ -117,16 +61,6 @@ safe_get_followers <- function(node, ...) {
   followers
 }
 
-#' Title
-#'
-#' @param node
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @family API call
-#'
 safe_lookup_user <- function(node, ...) {
   stopifnot(length(node) == 1)
   token <- find_token("users/lookup")

@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 # twittercache
 
 <!-- badges: start -->
+[![Travis build status](https://travis-ci.org/RoheLab/twittercache.svg?branch=master)](https://travis-ci.org/RoheLab/twittercache)
+[![Travis build status](https://travis-ci.org/alexpghayes/twittercache.svg?branch=master)](https://travis-ci.org/alexpghayes/twittercache)
 <!-- badges: end -->
 
 `twittercache` facilitates robust sampling of the Twitter network. The basic idea is to save any data into a local cache as you as you get it. `twittercache` is build on top of [`rtweet`](http://rtweet.info/).

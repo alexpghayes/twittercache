@@ -11,6 +11,6 @@ Will ask you for confirmation before proceeding because
 of the how time consuming it is to sample users.
 }
 \seealso{
-Other cache management: \code{\link{have_neighborhood}}
+Other cache management: \code{\link{user_in_cache}}
 }
 \concept{cache management}

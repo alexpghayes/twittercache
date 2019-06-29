@@ -7,5 +7,5 @@
 clean_cache()
 }
 \description{
-Remove suspended and deleted accounts from the cache
+Not yet implemented.
 }

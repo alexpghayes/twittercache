@@ -27,7 +27,8 @@ Imports:
     purrr,
     igraph,
     tidygraph,
-    usethis
+    usethis,
+    magrittr
 Collate: 
     'api_calls.R'
     'cache.R'

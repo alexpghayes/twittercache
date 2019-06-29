@@ -18,6 +18,8 @@ export_cache <- function(path) {
 
 #' Import the cache
 #'
+#' Not yet implemented.
+#'
 #' Adds users and token from the zipped cache file to the
 #' local cache.
 #'

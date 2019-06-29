@@ -1,18 +1,18 @@
 #' Check if a user is in the cache
 #'
-#' TODO: Not vectorized (yet)
+#' @param users A vector screen names or user IDs of Twitter users.
 #'
-#' @param node Either the screen name of user ID of a Twitter user.
+#' @return A logical vector.
 #'
-#' @return Either `TRUE` or `FALSE`.
 #' @export
+#' @family cache management
 #'
-user_in_cache <- function(user) {
+user_in_cache <- function(users) {
 
   create_cache_if_needed()
 
-  node <- lookup_users(user)$user_id
-  in_cache(node)
+  nodes <- lookup_users(users)$user_id
+  in_cache(nodes)
 }
 
 #' Remove all sampled users from the cache
@@ -39,33 +39,15 @@ clear_cache <- function() {
 
 #' Remove suspended and deleted accounts from the cache
 #'
+#' Not yet implemented.
+#'
 #' @export
 clean_cache <- function() {
-
   create_cache_if_needed()
-
   .NotYetImplemented()
 }
 
-#' Check if a user's entire neighborhood is in the cache
-#'
-#' @param node Either the screen name of user ID of a Twitter user.
-#'
-#' @return Either `TRUE` or `FALSE`.
-#' @export
-#'
-#' @family cache management
-#'
-have_neighborhood <- function(user) {
-
-  create_cache_if_needed()
-
-  .NotYetImplemented()
-}
-
-
-
-#' Check if a node is in the cache
+#' Check if nodes are in the cache
 #'
 #' @param nodes User ids of Twitter users. *Not* the screen name.
 #'
@@ -105,16 +87,12 @@ get_cache_dir <- function() {
   path.expand("~/.twittergraph")
 }
 
-get_network_dir <- function() {
-  file.path(get_cache_dir(), "network")
-}
-
 get_node_path <- function(node) {
-  file.path(cache_dir, "network", paste0(node, "_node.rds"))
+  file.path(get_network_dir(), paste0(node, "_node.rds"))
 }
 
 get_edge_path <- function(node) {
-  file.path(cache_dir, "network", paste0(node, "_edge.rds"))
+  file.path(get_network_dir(), paste0(node, "_edge.rds"))
 }
 
 cache_edge_data <- function(node, edge_data) {
