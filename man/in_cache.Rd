@@ -4,14 +4,15 @@
 \alias{in_cache}
 \title{Check if a node is in the cache}
 \usage{
-in_cache(node)
+in_cache(nodes)
 }
 \arguments{
-\item{node}{The user id of a Twitter user. \emph{Not} the screen name.}
+\item{nodes}{User ids of Twitter users. \emph{Not} the screen name.}
 }
 \value{
-Either \code{TRUE} or \code{FALSE}.
+A logical vector.
 }
 \description{
 Check if a node is in the cache
 }
+\keyword{internal}
