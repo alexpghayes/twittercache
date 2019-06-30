@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![Travis build
+status](https://travis-ci.org/alexpghayes/twittercache.svg?branch=master)](https://travis-ci.org/alexpghayes/twittercache)
 <!-- badges: end -->
 
 `twittercache` facilitates robust sampling of the Twitter network. The
