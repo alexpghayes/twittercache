@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Get screen names from the request queue — get_requests • twittercache</title>
+<title>Get the number of users in the request queue — get_number_of_requests • twittercache</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,12 +30,9 @@
 
 
 
-<meta property="og:title" content="Get screen names from the request queue — get_requests" />
+<meta property="og:title" content="Get the number of users in the request queue — get_number_of_requests" />
 
-<meta property="og:description" content="NOTE: calls rtweet::lookup_users() without checking API
-rate limits. Unless you have an enormous (90,000+) number of
-requests, or have been using your tokens outside of twittercache
-this is extremely unlikely to cause a problem." />
+<meta property="og:description" content="Get the number of users in the request queue" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -102,31 +99,27 @@ this is extremely unlikely to cause a problem." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Get screen names from the request queue</h1>
+    <h1>Get the number of users in the request queue</h1>
     <small class="dont-index">Source: <a href='https://github.com/alexpghayes/twittercache/blob/master/R/request.R'><code>R/request.R</code></a></small>
-    <div class="hidden name"><code>get_requests.Rd</code></div>
+    <div class="hidden name"><code>get_number_of_requests.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p><strong>NOTE</strong>: calls <code><a href='https://www.rdocumentation.org/packages/rtweet/topics/lookup_users'>rtweet::lookup_users()</a></code> without checking API
-rate limits. Unless you have an enormous (90,000+) number of
-requests, or have been using your tokens outside of <code>twittercache</code>
-this is extremely unlikely to cause a problem.</p>
+    <p>Get the number of users in the request queue</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>get_requests</span>()</pre>
+    <pre class="usage"><span class='fu'>get_number_of_requests</span>()</pre>
         
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A character vector of screen names.</p>
+    <p>An integer.</p>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other managing requests: <code><a href='clear_requests.html'>clear_requests</a></code>,
-  <code><a href='get_number_of_requests.html'>get_number_of_requests</a></code>,
-  <code><a href='request.html'>request</a></code></p></div>
+  <code><a href='get_requests.html'>get_requests</a></code>, <code><a href='request.html'>request</a></code></p></div>
     
 
   </div>
