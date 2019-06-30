@@ -62,8 +62,8 @@ request <- function(screen_names, neighborhood = FALSE) {
 
   if (neighborhood) {
     for (node in new_nodes) {
-      followers <- safe_get_followers(node)
-      friends <- safe_get_friends(node)
+      followers <- safe_get_followers(node, token = token)
+      friends <- safe_get_friends(node, token = token)
 
       add_request(friends$to)
       add_request(followers$from)

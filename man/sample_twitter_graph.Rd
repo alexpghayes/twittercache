@@ -2,7 +2,7 @@
 % Please edit documentation in R/visit.R
 \name{sample_twitter_graph}
 \alias{sample_twitter_graph}
-\title{Robustly sample from the twitter graph}
+\title{Robustly sample the twitter graph}
 \usage{
 sample_twitter_graph()
 }

@@ -1,4 +1,4 @@
-#' Robustly sample from the twitter graph
+#' Robustly sample the twitter graph
 #'
 #' Once you have added users to the request queue, run
 #' `sample_twitter_graph()`. That's it. Data about each
