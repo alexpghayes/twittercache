@@ -78,16 +78,8 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#twittercache" class="anchor"></a>twittercache</h1></div>
 <!-- badges: start -->
-
+<!-- badges: end -->
 <p><code>twittercache</code> facilitates robust sampling of the Twitter network. The basic idea is to save any data into a local cache as you as you get it. <code>twittercache</code> is build on top of <a href="http://rtweet.info/"><code>rtweet</code></a>.</p>
-<div id="names" class="section level2">
-<h2 class="hasAnchor">
-<a href="#names" class="anchor"></a>NAMES</h2>
-<ul>
-<li>request queue</li>
-<li>failure log</li>
-</ul>
-</div>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
@@ -95,6 +87,16 @@
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(<span class="st">"devtools"</span>)</a>
 <a class="sourceLine" id="cb1-2" title="2">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"alexpghayes/twittercache"</span>)</a></code></pre></div>
 <p><code>twittercache</code> is not on CRAN and I don’t plan to submit it.</p>
+</div>
+<div id="basic-workflow" class="section level2">
+<h2 class="hasAnchor">
+<a href="#basic-workflow" class="anchor"></a>Basic workflow</h2>
+<ol style="list-style-type: decimal">
+<li>Register your tokens with <code><a href="reference/register_token.html">register_token()</a></code>.</li>
+<li>Add users to the request queue with <code><a href="reference/request.html">request()</a></code>.</li>
+<li>Actually get the friendship information with <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code>.</li>
+<li>Export the graph with <code><a href="reference/get_network_as_tidygraph.html">get_network_as_tidygraph()</a></code>.</li>
+</ol>
 </div>
 <div id="step-1-register-your-tokens" class="section level2">
 <h2 class="hasAnchor">
@@ -111,74 +113,53 @@
 <a class="sourceLine" id="cb2-9" title="9">)</a>
 <a class="sourceLine" id="cb2-10" title="10"></a>
 <a class="sourceLine" id="cb2-11" title="11"><span class="kw"><a href="reference/register_token.html">register_token</a></span>(token)</a></code></pre></div>
-<p>Or add existing <code>rtweet</code> tokens with <code>get_token()</code> / <code>get_tokens()</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">token &lt;-<span class="st"> </span><span class="kw">get_token</span>()</a>
-<a class="sourceLine" id="cb3-2" title="2"><span class="kw"><a href="reference/register_token.html">register_token</a></span>(token)</a></code></pre></div>
-<p><code>twittercache</code> is smart and only allows you to register a token once, so don’t worry about accidentally registering the same token multiple times:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw"><a href="reference/register_token.html">register_token</a></span>(token)</a></code></pre></div>
-<p>Check how many tokens you have registered with</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw"><a href="reference/get_number_of_tokens.html">get_number_of_tokens</a></span>()</a></code></pre></div>
+<p><code>twittercache</code> is smart and only allows you to register a token once, so don’t worry about accidentally registering the same token multiple times. You can check how many tokens you have registered with</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw"><a href="reference/get_number_of_tokens.html">get_number_of_tokens</a></span>()</a></code></pre></div>
 </div>
 <div id="step-2-request-information-on-nodes-in-the-twitter-graph" class="section level2">
 <h2 class="hasAnchor">
 <a href="#step-2-request-information-on-nodes-in-the-twitter-graph" class="anchor"></a>Step 2: Request information on nodes in the twitter graph</h2>
-<p>Request information on a nodes with <code><a href="reference/request.html">request()</a></code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="kw"><a href="reference/request.html">request</a></span>(<span class="st">"alexpghayes"</span>)</a></code></pre></div>
-<p>You can pass either screen names or user IDs to <code><a href="reference/request.html">request()</a></code>:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(rtweet)</a>
-<a class="sourceLine" id="cb7-2" title="2"></a>
-<a class="sourceLine" id="cb7-3" title="3">rohe_lab &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"alexpghayes"</span>, <span class="st">"karlrohe"</span>, <span class="st">"krauskae"</span>, <span class="st">"_fchen"</span>,</a>
-<a class="sourceLine" id="cb7-4" title="4">              <span class="st">"JosephineLukito"</span>, <span class="st">"yinizhang2011"</span>, <span class="st">"undercoverkanye"</span>)</a>
-<a class="sourceLine" id="cb7-5" title="5"></a>
-<a class="sourceLine" id="cb7-6" title="6">r_peeps &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"hadleywickham"</span>, <span class="st">"JennyBryan"</span>, <span class="st">"robinson_es"</span>)</a>
-<a class="sourceLine" id="cb7-7" title="7"></a>
-<a class="sourceLine" id="cb7-8" title="8"><span class="kw"><a href="reference/request.html">request</a></span>(rohe_lab, <span class="dt">neighborhood =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-<p><code>twittercache</code> is really built to enable to BFS type searches through the twitter graph. If you want to add known about all the nodes in the neighborhood of a single node, use:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="kw"><a href="reference/request.html">request</a></span>(<span class="st">"alexpghayes"</span>, <span class="dt">neighborhood =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-<p>I recommend against asking for the neighborhood huge accounts, because <code>twittercache</code> considers both friends and followers part of the neighborhood, and so sampling will take forever if you do things like:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1"><span class="kw"><a href="reference/request.html">request</a></span>(<span class="st">"hadleywickham"</span>, <span class="dt">neighborhood =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-<p><code><a href="reference/request.html">request()</a></code> <em>does not</em> do any sampling. It just builds a list of nodes that need to be sampled. <code><a href="reference/request.html">request()</a></code> is smart:</p>
+<p>Request information on Twitter users with <code><a href="reference/request.html">request()</a></code>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" title="1"><span class="kw"><a href="reference/request.html">request</a></span>(<span class="st">"alexpghayes"</span>)</a></code></pre></div>
+<p>You can pass in multiple screen names at once, and you can also request information on all the 1-step neighors of these users by setting <code>neighborhood = TRUE</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">rohe_lab &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"alexpghayes"</span>, <span class="st">"karlrohe"</span>, <span class="st">"krauskae"</span>, <span class="st">"_fchen"</span>,</a>
+<a class="sourceLine" id="cb5-2" title="2">              <span class="st">"JosephineLukito"</span>, <span class="st">"yinizhang2011"</span>)</a>
+<a class="sourceLine" id="cb5-3" title="3"></a>
+<a class="sourceLine" id="cb5-4" title="4"><span class="kw"><a href="reference/request.html">request</a></span>(rohe_lab, <span class="dt">neighborhood =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<p><code><a href="reference/request.html">request()</a></code> <em>does not</em> do any sampling. It just builds a queue of nodes that need to be sampled. <code><a href="reference/request.html">request()</a></code> is smart:</p>
 <ul>
 <li>If a node is already in the cache, it isn’t added to the queue</li>
 <li>Redundant nodes are not added to the queue</li>
+<li>Requests for users that don’t exist gives a warning but otherwise carries on happily</li>
 </ul>
-<p>If you request information on a Twitter user that doesn’t exist, you’ll get a warning:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"><span class="kw"><a href="reference/request.html">request</a></span>(<span class="st">"not_a_real_twitter_handle"</span>)</a></code></pre></div>
 <p>To see the current list of requests, use</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="kw"><a href="reference/get_requests.html">get_requests</a></span>()</a></code></pre></div>
-<p>This returns a character vector of user IDs. It’s mostly for internal use at the moment and I might write a nicer wrapper around it that returns screen names at some point.</p>
-<p>To clear the current requests, use</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1"><span class="kw"><a href="reference/clear_requests.html">clear_requests</a></span>()</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="kw"><a href="reference/get_requests.html">get_requests</a></span>()</a></code></pre></div>
+<p>See the reference section for more details about how to manage the request list.</p>
 </div>
 <div id="step-3-sample-nodes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#step-3-sample-nodes" class="anchor"></a>Step 3: Sample nodes!</h2>
 <p>All you need to do is run</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw"><a href="reference/sample_twitter_graph.html">sample_twitter_graph</a></span>()</a></code></pre></div>
-<p>For more verbose output, use</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(logger)</a>
-<a class="sourceLine" id="cb14-2" title="2"></a>
-<a class="sourceLine" id="cb14-3" title="3"><span class="kw">log_level</span>(DEBUG)</a>
-<a class="sourceLine" id="cb14-4" title="4"></a>
-<a class="sourceLine" id="cb14-5" title="5"><span class="kw"><a href="reference/sample_twitter_graph.html">sample_twitter_graph</a></span>()</a></code></pre></div>
-<p>If someone knows better practices for logging things, please reach out, I really have no clue what I’m doing here.</p>
-<p>On occasion <code>rtweet()</code> or the Twitter API will just explode and won’t be able to sample a node. <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code> records these failures and moves on to the next requested node in cases like this.</p>
-<p>To see nodes that <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code> managed to sample, run</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw"><a href="reference/get_failures.html">get_failures</a></span>()</a></code></pre></div>
-<p>which again returns a character vector of user IDs.</p>
-<p>In general, <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code> is designed to be pretty robust. If it crashes the samples you already got are already saved into the cache so you don’t lose work, and if you run it again it’ll update the request list and make sure not to repeat any work.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw"><a href="reference/sample_twitter_graph.html">sample_twitter_graph</a></span>()</a></code></pre></div>
+<p>Really. That’s it. Data about each user is saved into the cache as soon it is received.</p>
+<p>If your R session crashes, you lose internet connection, whatever, it doesn’t matter. Just run <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code> again and the sampling will pick up right where it left off, automatically updating the request queue for you.</p>
+<p>Sampling will automatically use all registered tokens, and will respect rates limits. When we reach an API rate limit, we simply wait for the shortest amount of time until the rate limit resets for the next available token.</p>
+<p>On occasion <code>rtweet()</code> or the Twitter API will just explode and won’t be able to sample a node. <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code> records these failures and moves on to the next requested node in cases like this. See <code><a href="reference/get_failures.html">get_failures()</a></code> and associated tools for some details on how to handle this.</p>
 </div>
-<div id="step-4-export-the-cache" class="section level2">
+<div id="step-4-turn-the-data-into-a-graph" class="section level2">
 <h2 class="hasAnchor">
-<a href="#step-4-export-the-cache" class="anchor"></a>Step 4: Export the cache</h2>
-<p>export the cache / import the cache</p>
-<p>TODO</p>
+<a href="#step-4-turn-the-data-into-a-graph" class="anchor"></a>Step 4: Turn the data into a graph!</h2>
+<p>All you need to do to turn your hard won data into a graph is call:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1">graph &lt;-<span class="st"> </span><span class="kw"><a href="reference/get_network_as_tidygraph.html">get_network_as_tidygraph</a></span>()</a>
+<a class="sourceLine" id="cb8-2" title="2">graph</a></code></pre></div>
+<p>This can take a hot second. I recommend saving the resulting object as an <code>.rds</code> to facilitate easy use down the line.</p>
+<p>Please see the <a href="https://www.data-imaginist.com/2017/introducing-tidygraph/"><code>tidygraph</code></a> blog post for details on how to use <code>tidygraph</code> objects. In particular, you’ll probably want to do some sort of subsetting of nodes and edges.</p>
+<p>A useful trick to know is that you can get the adjacency matrix with:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">igraph<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/igraph/topics/as_adjacency_matrix">get.adjacency</a></span>(graph)</a></code></pre></div>
 </div>
 <div id="frequently-asked-questions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#frequently-asked-questions" class="anchor"></a>Frequently asked questions</h2>
-<p><strong>How do you manage the API rate limits?</strong></p>
-<p>Currently we just sample one node a minute. This complies with the Twitter API rate limits but is a bit dicey. Improving this is a priority.</p>
 <p><strong>Where is the cache itself?</strong></p>
 <p>It’s at <code>~/.twittergraph/</code>.</p>
 <p><strong>This whole cache thing is a bad idea</strong></p>
@@ -188,15 +169,14 @@
 <p>Recall that you can pick up an edge in the network from either node. We recommend trying to make sure the node with smaller degree is in your sample.</p>
 <p><strong>What happens when I try to sample protected users?</strong></p>
 <p>We remove these users from the sample at export time.</p>
+<p><strong>What is this mess of weird logger calls?</strong></p>
+<p>If someone knows better practices for logging things, please reach out, I really have no clue what I’m doing here.</p>
 </div>
-<div id="todo" class="section level2">
+<div id="contributing" class="section level2">
 <h2 class="hasAnchor">
-<a href="#todo" class="anchor"></a>TODO</h2>
-<ul>
-<li>just put create_cache_if_needed in user facing functions, and nowhere else</li>
-<li>add move <code>force</code> argument from <code>visit</code> to <code>request</code>
-</li>
-</ul>
+<a href="#contributing" class="anchor"></a>Contributing</h2>
+<p>Please note that the ‘twittercache’ project is released with a <a href="CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>.</p>
+<p>By contributing to this project, you agree to abide by its terms.</p>
 </div>
 </div>
   </div>
@@ -225,14 +205,7 @@
 </ul>
 </div>
 
-      <div class="dev-status">
-<h2>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://travis-ci.org/RoheLab/twittercache"><img src="https://travis-ci.org/RoheLab/twittercache.svg?branch=master" alt="Travis build status"></a></li>
-<li><a href="https://travis-ci.org/alexpghayes/twittercache"><img src="https://travis-ci.org/alexpghayes/twittercache.svg?branch=master" alt="Travis build status"></a></li>
-</ul>
-</div>
-</div>
+      </div>
 
 </div>
 

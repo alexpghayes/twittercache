@@ -17,15 +17,9 @@ knitr::opts_chunk$set(
 # twittercache
 
 <!-- badges: start -->
-[![Travis build status](https://travis-ci.org/RoheLab/twittercache.svg?branch=master)](https://travis-ci.org/RoheLab/twittercache)
 <!-- badges: end -->
 
 `twittercache` facilitates robust sampling of the Twitter network. The basic idea is to save any data into a local cache as you as you get it. `twittercache` is build on top of [`rtweet`](http://rtweet.info/).
-
-## NAMES
-
-- request queue
-- failure log
 
 ## Installation
 
@@ -37,6 +31,13 @@ devtools::install_github("alexpghayes/twittercache")
 ```
 
 `twittercache` is not on CRAN and I don't plan to submit it.
+
+## Basic workflow
+
+1. Register your tokens with `register_token()`.
+2. Add users to the request queue with `request()`.
+3. Actually get the friendship information with `sample_twitter_graph()`.
+4. Export the graph with `get_network_as_tidygraph()`.
 
 ## Step 1: Register your tokens
 
@@ -56,20 +57,7 @@ token <- rtweet::create_token(
 register_token(token)
 ```
 
-Or add existing `rtweet` tokens with `get_token()` / `get_tokens()`:
-
-```{r}
-token <- get_token()
-register_token(token)
-```
-
-`twittercache` is smart and only allows you to register a token once, so don't worry about accidentally registering the same token multiple times:
-
-```{r}
-register_token(token)
-```
-
-Check how many tokens you have registered with
+`twittercache` is smart and only allows you to register a token once, so don't worry about accidentally registering the same token multiple times. You can check how many tokens you have registered with
 
 ```{r}
 get_number_of_tokens()
@@ -77,47 +65,26 @@ get_number_of_tokens()
 
 ## Step 2: Request information on nodes in the twitter graph
 
-Request information on a nodes with `request()`:
+Request information on Twitter users with `request()`:
 
 ```{r}
 request("alexpghayes")
 ```
 
-You can pass either screen names or user IDs to `request()`:
+You can pass in multiple screen names at once, and you can also request information on all the 1-step neighors of these users by setting `neighborhood = TRUE`.
 
 ```{r}
-library(rtweet)
-
 rohe_lab <- c("alexpghayes", "karlrohe", "krauskae", "_fchen",
-              "JosephineLukito", "yinizhang2011", "undercoverkanye")
-
-r_peeps <- c("hadleywickham", "JennyBryan", "robinson_es")
+              "JosephineLukito", "yinizhang2011")
 
 request(rohe_lab, neighborhood = TRUE)
 ```
 
-`twittercache` is really built to enable to BFS type searches through the twitter graph. If you want to add known about all the nodes in the neighborhood of a single node, use:
-
-```{r}
-request("alexpghayes", neighborhood = TRUE)
-```
-
-I recommend against asking for the neighborhood huge accounts, because `twittercache` considers both friends and followers part of the neighborhood, and so sampling will take forever if you do things like:
-
-```{r eval = FALSE}
-request("hadleywickham", neighborhood = TRUE)
-```
-
-`request()` *does not* do any sampling. It just builds a list of nodes that need to be sampled. `request()` is smart:
+`request()` *does not* do any sampling. It just builds a queue of nodes that need to be sampled. `request()` is smart:
 
 - If a node is already in the cache, it isn't added to the queue
 - Redundant nodes are not added to the queue
-
-If you request information on a Twitter user that doesn't exist, you'll get a warning:
-
-```{r}
-request("not_a_real_twitter_handle")
-```
+- Requests for users that don't exist gives a warning but otherwise carries on happily
 
 To see the current list of requests, use 
 
@@ -125,13 +92,7 @@ To see the current list of requests, use
 get_requests()
 ```
 
-This returns a character vector of user IDs. It's mostly for internal use at the moment and I might write a nicer wrapper around it that returns screen names at some point.
-
-To clear the current requests, use
-
-```{r}
-clear_requests()
-```
+See the reference section for more details about how to manage the request list.
 
 ## Step 3: Sample nodes!
 
@@ -141,41 +102,34 @@ All you need to do is run
 sample_twitter_graph()
 ```
 
-For more verbose output, use
+Really. That's it.  Data about each user is saved into the cache as soon it is received.
+
+If your R session crashes, you lose internet connection, whatever, it doesn't matter. Just run `sample_twitter_graph()` again and the sampling will pick up right where it left off, automatically updating the request queue for you.
+
+Sampling will automatically use all registered tokens, and will respect rates limits. When we reach an API rate limit, we simply wait for the shortest amount of time until the rate limit resets for the next available token.
+
+On occasion `rtweet()` or the Twitter API will just explode and won't be able to sample a node. `sample_twitter_graph()` records these failures and moves on to the next requested node in cases like this. See `get_failures()` and associated tools for some details on how to handle this.
+
+## Step 4: Turn the data into a graph!
+
+All you need to do to turn your hard won data into a graph is call:
 
 ```{r}
-library(logger)
-
-log_level(DEBUG)
-
-sample_twitter_graph()
+graph <- get_network_as_tidygraph()
+graph
 ```
 
-If someone knows better practices for logging things, please reach out, I really have no clue what I'm doing here.
+This can take a hot second. I recommend saving the resulting object as an `.rds` to facilitate easy use down the line.
 
-On occasion `rtweet()` or the Twitter API will just explode and won't be able to sample a node. `sample_twitter_graph()` records these failures and moves on to the next requested node in cases like this.
+Please see the [`tidygraph`](https://www.data-imaginist.com/2017/introducing-tidygraph/) blog post for details on how to use `tidygraph` objects. In particular, you'll probably want to do some sort of subsetting of nodes and edges.
 
-To see nodes that `sample_twitter_graph()` managed to sample, run
+A useful trick to know is that you can get the adjacency matrix with:
 
 ```{r}
-get_failures()
+igraph::get.adjacency(graph)
 ```
-
-which again returns a character vector of user IDs.
-
-In general, `sample_twitter_graph()` is designed to be pretty robust. If it crashes the samples you already got are already saved into the cache so you don't lose work, and if you run it again it'll update the request list and make sure not to repeat any work.
-
-## Step 4: Export the cache
-
-export the cache / import the cache
-
-TODO
 
 ## Frequently asked questions
-
-**How do you manage the API rate limits?**
-
-Currently we just sample one node a minute. This complies with the Twitter API rate limits but is a bit dicey. Improving this is a priority.
 
 **Where is the cache itself?**
 
@@ -195,7 +149,12 @@ Recall that you can pick up an edge in the network from either node. We recommen
 
 We remove these users from the sample at export time.
 
-  
-## TODO
-- just put create_cache_if_needed in user facing functions, and nowhere else
-- add move `force` argument from `visit` to `request`
+**What is this mess of weird logger calls?**
+
+If someone knows better practices for logging things, please reach out, I really have no clue what I'm doing here.
+
+## Contributing
+
+Please note that the `twittercache` project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
+
+By contributing to this project, you agree to abide by its terms.
