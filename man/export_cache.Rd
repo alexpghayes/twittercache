@@ -7,7 +7,7 @@
 export_cache(path)
 }
 \arguments{
-\item{path}{}
+\item{path}{Name of output file. We recommend \code{twittercache.zip}.}
 }
 \description{
 Saves the cache to a zipped file that can be imported

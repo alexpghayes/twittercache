@@ -11,7 +11,7 @@ user_in_cache <- function(users) {
 
   create_cache_if_needed()
 
-  nodes <- lookup_users(users)$user_id
+  nodes <- rtweet::lookup_users(users)$user_id
   in_cache(nodes)
 }
 

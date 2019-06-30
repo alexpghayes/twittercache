@@ -5,14 +5,14 @@
 #' and registered tokens. Import the cache on a different
 #' computer with [import_cache()].
 #'
-#' @param path
+#' @param path Name of output file. We recommend `twittercache.zip`.
 #'
 #' @export
 #'
 export_cache <- function(path) {
   cache_dir <- get_cache_dir()
   cache_files <- list.files(cache_dir, full.names = TRUE)
-  zip(path, cache_files)
+  utils::zip(path, cache_files)
   message(glue("Cache exported to {path.expand(path)}."))
 }
 

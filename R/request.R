@@ -46,7 +46,7 @@ request <- function(screen_names, neighborhood = FALSE) {
   create_cache_if_needed()
   token <- get_registered_token(1)
 
-  found <- lookup_users(screen_names, token = token)
+  found <- rtweet::lookup_users(screen_names, token = token)
   not_found <- setdiff(screen_names, found$screen_name)
 
   if (length(not_found) > 0)
