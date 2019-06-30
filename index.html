@@ -79,7 +79,7 @@
 <a href="#twittercache" class="anchor"></a>twittercache</h1></div>
 <!-- badges: start -->
 
-<p><code>twittercache</code> facilitates robust sampling of the Twitter network. The basic idea is to save any data into a local cache as you as you get it. <code>twittercache</code> is build on top of <a href="http://rtweet.info/"><code>rtweet</code></a>.</p>
+<p><code>twittercache</code> facilitates robust sampling of the Twitter graph. The basic idea is to save any data into a local cache as you as you get it. <code>twittercache</code> is build on top of <a href="http://rtweet.info/"><code>rtweet</code></a>.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
@@ -164,7 +164,7 @@
 <p><strong>How do you manage the API rate limits?</strong></p>
 <p>Currently we just sample one node a minute. This complies with the Twitter API rate limits, but only if you don’t use the registered tokens for anything else while sampling.</p>
 <p><strong>How efficient is this whole process?</strong></p>
-<p>We currently sample at about a maximum rate of 60 users / minute. So if you have ~60 or fewer tokens, we’re sample as fast as possible while respecting the Twitter API rate limits.</p>
+<p>We currently sample at about a maximum rate of 60 users / minute. So if you have ~60 or fewer tokens, we sample as fast as possible while respecting the Twitter API rate limits.</p>
 <p>We can push this arbritrarily high (provided you have the tokens) by parallelizing a key loop in <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code>. I don’t have 60 tokens so I’m not worrying about this yet, but let me know if this is something you need.</p>
 <p><strong>Where is the cache itself?</strong></p>
 <p>It’s at <code>~/.twittergraph/</code>.</p>
