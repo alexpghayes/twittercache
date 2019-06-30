@@ -63,8 +63,8 @@ in_cache <- function(nodes) {
 
     node <- nodes[i]
 
-    edge_path <- get_edge_path()
-    node_path <- get_node_path()
+    edge_path <- get_edge_path(node)
+    node_path <- get_node_path(node)
 
     have_node[i] <- file.exists(edge_path) && file.exists(node_path)
   }

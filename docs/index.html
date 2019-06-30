@@ -35,7 +35,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">twittercache</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9002</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
       </span>
     </div>
 
@@ -86,7 +86,7 @@
 <p>You can install the development version of <code>twittercache</code> with:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(<span class="st">"devtools"</span>)</a>
 <a class="sourceLine" id="cb1-2" title="2">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"alexpghayes/twittercache"</span>)</a></code></pre></div>
-<p><code>twittercache</code> is not on CRAN and I don’t plan to submit it.</p>
+<p><code>twittercache</code> is not on CRAN and I don’t plan to submit it. If you run into bugs, <strong>please please please</strong> report them.</p>
 </div>
 <div id="basic-workflow" class="section level2">
 <h2 class="hasAnchor">
@@ -130,10 +130,11 @@
 <ul>
 <li>If a node is already in the cache, it isn’t added to the queue</li>
 <li>Redundant nodes are not added to the queue</li>
-<li>Requests for users that don’t exist gives a warning but otherwise carries on happily</li>
+<li>Requests for users that don’t exist results in a warning, but otherwise things carry on happily</li>
 </ul>
 <p>To see the current list of requests, use</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="kw"><a href="reference/get_requests.html">get_requests</a></span>()</a></code></pre></div>
+<p>This can take a second because it involves an API call to convert user IDs (used in internal cache storage) to Twitter handles.</p>
 <p>See the reference section for more details about how to manage the request list.</p>
 </div>
 <div id="step-3-sample-nodes" class="section level2">
@@ -160,6 +161,11 @@
 <div id="frequently-asked-questions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#frequently-asked-questions" class="anchor"></a>Frequently asked questions</h2>
+<p><strong>How do you manage the API rate limits?</strong></p>
+<p>Currently we just sample one node a minute. This complies with the Twitter API rate limits, but only if you don’t use the registered tokens for anything else while sampling.</p>
+<p><strong>How efficient is this whole process?</strong></p>
+<p>We currently sample at about a maximum rate of 60 users / minute. So if you have ~60 or fewer tokens, we’re sample as fast as possible while respecting the Twitter API rate limits.</p>
+<p>We can push this arbritrarily high (provided you have the tokens) by parallelizing a key loop in <code><a href="reference/sample_twitter_graph.html">sample_twitter_graph()</a></code>. I don’t have 60 tokens so I’m not worrying about this yet, but let me know if this is something you need.</p>
 <p><strong>Where is the cache itself?</strong></p>
 <p>It’s at <code>~/.twittergraph/</code>.</p>
 <p><strong>This whole cache thing is a bad idea</strong></p>
@@ -175,7 +181,7 @@
 <div id="contributing" class="section level2">
 <h2 class="hasAnchor">
 <a href="#contributing" class="anchor"></a>Contributing</h2>
-<p>Please note that the ‘twittercache’ project is released with a <a href="CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>.</p>
+<p>Please note that the <code>twittercache</code> project is released with a <a href="CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>.</p>
 <p>By contributing to this project, you agree to abide by its terms.</p>
 </div>
 </div>

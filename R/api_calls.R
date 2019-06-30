@@ -1,5 +1,8 @@
-# these functions heavily inspired by code from @fchen365
-
+#' Check rate limits for registered tokens
+#'
+#' There should be no need to do this, but it may make you feel better.
+#'
+#' @export
 check_rate_limits <- function() {
 
   tokens <- get_all_tokens()
@@ -9,29 +12,8 @@ check_rate_limits <- function() {
 
 }
 
-find_token <- function(query = "friends/ids") {
 
-  tokens <- get_all_tokens()
-
-  limits <- rtweet::rate_limits(tokens) %>%
-    dplyr::filter(query == !!query)
-
-  calls_remaining <- any(limits$remaining > 0)
-
-  # wait the shortest amount of time for the query to reset
-  if (!calls_remaining) {
-    minutes_until_reset <- min(limits$reset)
-    message(glue("API calls exhausted. Waiting {minutes_until_reset * 60} seconds."))
-    Sys.sleep(minutes_until_reset * 60)
-    return(find_token(query))
-  }
-
-  # return the token with most remaining calls
-  index <- which.max(limits$remaining)
-  tokens[[index]]
-}
-
-safe_get_friends <- function(node, ...) {
+safe_get_friends <- function(node, token, ...) {
 
   stopifnot(length(node) == 1)
 
@@ -45,11 +27,10 @@ safe_get_friends <- function(node, ...) {
   friends
 }
 
-safe_get_followers <- function(node, ...) {
+safe_get_followers <- function(node, token, ...) {
 
   stopifnot(length(node) == 1)
 
-  token <- find_token("followers/ids")
   followers <- rtweet::get_followers(node, token = token, verbose = FALSE, ...)
 
   if (all(is.na(followers$user_id)))
@@ -61,8 +42,35 @@ safe_get_followers <- function(node, ...) {
   followers
 }
 
-safe_lookup_user <- function(node, ...) {
-  stopifnot(length(node) == 1)
-  token <- find_token("users/lookup")
-  rtweet::lookup_users(node, token = token)
+# experimental attempt at respecting rate limits. two issues:
+#
+#   - somehow the waiting logic is incorrect and it doesn't
+#     sleep when it should
+#
+#   - massive efficiency losses for large numbers of tokens
+#     in wait time if sequentially asking for the rate limit
+#     remainders before asking for data
+#
+#  inspired by code from @fchen365
+#
+find_token <- function(query = "friends/ids") {
+
+  tokens <- get_all_tokens()
+
+  limits <- rtweet::rate_limits(tokens) %>%
+    dplyr::filter(query == !!query)
+
+  calls_remaining <- any(limits$remaining > 0)
+
+  # wait the shortest amount of time for the query to reset
+  if (!calls_remaining) {
+    min_until_reset <- min(limits$reset)
+    message("API calls exhausted. Waiting ", min_until_reset * 60, " seconds.")
+    Sys.sleep(min_until_reset * 60)
+    return(find_token(query))
+  }
+
+  # return the token with most remaining calls
+  index <- which.max(limits$remaining)
+  tokens[[index]]
 }

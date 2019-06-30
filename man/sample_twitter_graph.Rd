@@ -10,6 +10,8 @@ sample_twitter_graph()
 Once you have added users to the request queue, run
 \code{sample_twitter_graph()}. That's it. Data about each
 user is saved into the cache as soon it is received.
+\strong{Do not use your tokens to make API calls} outside
+of \code{twittergraph} while running this function.
 }
 \details{
 If your R session crashes, you lose internet
@@ -18,10 +20,11 @@ connection, whatever, it doesn't matter. Just run
 up right where it left off.
 
 Sampling will automatically use all registered tokens,
-and will respect rates limits. When we reach an API
-rate limit, we simply wait for the shortest amount of
-time until the rate limit resets for the next
-available token.
+and will respect rates limits, providing \code{twittergraph}
+is the only application making API calls. Currently
+we use a simple heuristic to respect rate limits:
+request information about a single users per token
+per minute.
 }
 \seealso{
 \code{\link[=register_token]{register_token()}}, \code{\link[=request]{request()}}

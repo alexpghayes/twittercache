@@ -12,6 +12,10 @@
 #'
 get_requests <- function() {
   ids <- get_request_ids()
+
+  if (length(ids) < 1)
+    return(character(0))
+
   rtweet::lookup_users(ids, token = get_registered_token(1))$screen_name
 }
 
@@ -58,8 +62,8 @@ request <- function(screen_names, neighborhood = FALSE) {
 
   if (neighborhood) {
     for (node in new_nodes) {
-      followers <- safe_get_followers(node, token = token)
-      friends <- safe_get_friends(node, token = token)
+      followers <- safe_get_followers(node)
+      friends <- safe_get_friends(node)
 
       add_request(friends$to)
       add_request(followers$from)

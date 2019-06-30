@@ -27,6 +27,7 @@ reference:
   - title: Managing tokens
     desc: ~
     contents:
+      - '`check_rate_limits`'
       - '`clear_tokens`'
       - '`get_number_of_tokens`'
       - '`register_token`'

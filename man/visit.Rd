@@ -4,7 +4,7 @@
 \alias{visit}
 \title{Visit a node in the twitter graph and add it to the cache}
 \usage{
-visit(node)
+visit(node, token)
 }
 \arguments{
 \item{node}{The user id of a Twitter user. \emph{Not} the screen name.}

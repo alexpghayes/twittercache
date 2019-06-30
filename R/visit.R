@@ -3,6 +3,8 @@
 #' Once you have added users to the request queue, run
 #' `sample_twitter_graph()`. That's it. Data about each
 #' user is saved into the cache as soon it is received.
+#' **Do not use your tokens to make API calls** outside
+#' of `twittergraph` while running this function.
 #'
 #' If your R session crashes, you lose internet
 #' connection, whatever, it doesn't matter. Just run
@@ -10,10 +12,11 @@
 #' up right where it left off.
 #'
 #' Sampling will automatically use all registered tokens,
-#' and will respect rates limits. When we reach an API
-#' rate limit, we simply wait for the shortest amount of
-#' time until the rate limit resets for the next
-#' available token.
+#' and will respect rates limits, providing `twittergraph`
+#' is the only application making API calls. Currently
+#' we use a simple heuristic to respect rate limits:
+#' request information about a single users per token
+#' per minute.
 #'
 #' @export
 #' @seealso [register_token()], [request()]
@@ -44,23 +47,41 @@ sample_twitter_graph <- function() {
 
   while (length(requests) > 0) {
 
-    node <- requests[1]
+    start_time <- Sys.time()
 
-    logger::log_info("Visiting {node}.")
+    # TODO: parallelize for efficiency with large numbers of tokens
+    for (i in 1:num_tokens) {
 
-    tryCatch(
-      visit(node),
+      if (length(requests) < i)
+        break
 
-      error = function(cnd) {
-        logger::log_info("Failed to visit {node}.")
-        add_failure(node)
-      }
-    )
+      logger::log_info("Visiting {requests[i]} with token {i}.")
+
+      tryCatch(
+        visit(requests[i], token = tokens[[i]]),
+
+        error = function(cnd) {
+          logger::log_info("Failed to visit {requests[[i]]}.")
+          add_failure(requests[[i]])
+        }
+      )
+    }
 
     refresh_requests()
     requests <- get_request_ids()
 
+    if (length(requests) == 0)
+      break
+
+    waited_so_far <- as.numeric(Sys.time() - start_time, units = "secs")
+    to_wait <- round(max(0, 60 - waited_so_far))
+
     logger::log_info("Remaining requests: {length(requests)}")
+
+    if (to_wait > 0)
+      logger::log_info("Sleeping {to_wait} seconds.")
+
+    Sys.sleep(to_wait)
   }
 
   num_failures <- length(get_failure_ids())
@@ -69,7 +90,7 @@ sample_twitter_graph <- function() {
     warning(
       glue(
         "Failed to sample {num_failures} nodes. ",
-        "Use `get_failures()` to see these nodes."
+        "Use `get_current_failures()` to see these nodes."
       ),
       call. = FALSE
     )
@@ -99,15 +120,15 @@ sample_twitter_graph <- function() {
 #'
 #' @keywords internal
 #'
-visit <- function(node) {
+visit <- function(node, token) {
 
   if (length(node) != 1)
     stop("`node` must be a vector with a *single* user id.", call. = FALSE)
 
   logger::log_debug("Attempt to get friends and followers for {node}.")
 
-  friends <- safe_get_friends(node)
-  followers <- safe_get_followers(node)
+  friends <- safe_get_friends(node, token = token)
+  followers <- safe_get_followers(node, token = token)
 
   logger::log_debug("Successful sampled friends and followers for {node}.")
 
@@ -115,7 +136,7 @@ visit <- function(node) {
 
   logger::log_debug("Looking up user data for {node}")
 
-  node_data <- safe_lookup_user(node)
+  node_data <- rtweet::lookup_users(node, token = token)
 
   logger::log_debug("Writing data to cache for {node}")
 

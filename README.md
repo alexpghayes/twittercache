@@ -20,7 +20,8 @@ install.packages("devtools")
 devtools::install_github("alexpghayes/twittercache")
 ```
 
-`twittercache` is not on CRAN and I don’t plan to submit it.
+`twittercache` is not on CRAN and I don’t plan to submit it. If you run
+into bugs, **please please please** report them.
 
 ## Basic workflow
 
@@ -81,14 +82,17 @@ that need to be sampled. `request()` is smart:
 
   - If a node is already in the cache, it isn’t added to the queue
   - Redundant nodes are not added to the queue
-  - Requests for users that don’t exist gives a warning but otherwise
-    carries on happily
+  - Requests for users that don’t exist results in a warning, but
+    otherwise things carry on happily
 
 To see the current list of requests, use
 
 ``` r
 get_requests()
 ```
+
+This can take a second because it involves an API call to convert user
+IDs (used in internal cache storage) to Twitter handles.
 
 See the reference section for more details about how to manage the
 request list.
@@ -145,6 +149,23 @@ igraph::get.adjacency(graph)
 
 ## Frequently asked questions
 
+**How do you manage the API rate limits?**
+
+Currently we just sample one node a minute. This complies with the
+Twitter API rate limits, but only if you don’t use the registered tokens
+for anything else while sampling.
+
+**How efficient is this whole process?**
+
+We currently sample at about a maximum rate of 60 users / minute. So if
+you have \~60 or fewer tokens, we’re sample as fast as possible while
+respecting the Twitter API rate limits.
+
+We can push this arbritrarily high (provided you have the tokens) by
+parallelizing a key loop in `sample_twitter_graph()`. I don’t have 60
+tokens so I’m not worrying about this yet, but let me know if this is
+something you need.
+
 **Where is the cache itself?**
 
 It’s at `~/.twittergraph/`.
@@ -175,7 +196,7 @@ I really have no clue what I’m doing here.
 
 ## Contributing
 
-Please note that the ‘twittercache’ project is released with a
+Please note that the `twittercache` project is released with a
 [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
 
 By contributing to this project, you agree to abide by its terms.

@@ -12,6 +12,10 @@
 #'
 get_failures <- function() {
   ids <- get_failure_ids()
+
+  if (length(ids) < 1)
+    return(character(0))
+
   rtweet::lookup_users(ids, token = get_registered_token(1))$screen_name
 }
 
@@ -34,6 +38,10 @@ clear_failures <- function() {
 #'
 rerequest_failures <- function() {
   failures <- get_failure_ids()
+
+  if (length(failures) < 1)
+    stop("No failures in the failure log.", call. = FALSE)
+
   clear_failures()
   request(failures)
 }
