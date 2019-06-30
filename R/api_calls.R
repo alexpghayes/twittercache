@@ -17,7 +17,6 @@ safe_get_friends <- function(node, token, ...) {
 
   stopifnot(length(node) == 1)
 
-  token <- find_token("friends/ids")
   friends <- rtweet::get_friends(node, token = token, verbose = FALSE, ...)
 
   if (nrow(friends) == 0)

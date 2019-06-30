@@ -23,6 +23,7 @@ sample the Twitter graph, run \code{\link[=sample_twitter_graph]{sample_twitter_
 \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}
 
 Other managing requests: \code{\link{clear_requests}},
+  \code{\link{get_number_of_requests}},
   \code{\link{get_requests}}
 }
 \concept{managing requests}

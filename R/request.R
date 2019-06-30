@@ -19,6 +19,18 @@ get_requests <- function() {
   rtweet::lookup_users(ids, token = get_registered_token(1))$screen_name
 }
 
+#' Get the number of users in the request queue
+#'
+#' @return An integer.
+#' @export
+#'
+#' @family managing requests
+#'
+get_number_of_requests <- function() {
+  refresh_requests()
+  length(get_request_ids())
+}
+
 #' Empty the request queue
 #'
 #' @export
