@@ -19,6 +19,18 @@ get_failures <- function() {
   rtweet::lookup_users(ids, token = get_registered_token(1))$screen_name
 }
 
+#' Get the number of users in the failure log
+#'
+#' @return An integer.
+#' @export
+#'
+#' @family managing failures
+#'
+get_number_of_failures <- function() {
+  refresh_failures()
+  length(get_failure_ids())
+}
+
 #' Empty the failure log
 #'
 #' @export

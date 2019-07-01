@@ -11,6 +11,7 @@ Empty the failure log
 }
 \seealso{
 Other managing failures: \code{\link{get_failures}},
+  \code{\link{get_number_of_failures}},
   \code{\link{rerequest_failures}}
 }
 \concept{managing failures}

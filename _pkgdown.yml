@@ -17,12 +17,14 @@ reference:
     contents:
       - '`clear_requests`'
       - '`get_requests`'
+      - '`get_number_of_requests`'
       - '`request`'
   - title: Managing failures
     desc: ~
     contents:
       - '`clear_failures`'
       - '`get_failures`'
+      - '`get_number_of_failures`'
       - '`rerequest_failures`'
   - title: Managing tokens
     desc: ~

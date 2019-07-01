@@ -47,6 +47,21 @@ clean_cache <- function() {
   .NotYetImplemented()
 }
 
+#' See how many users are in the cache
+#'
+#' @return An integer.
+#'
+#' @export
+#'
+get_cache_size <- function() {
+
+  create_cache_if_needed()
+  network_dir <- get_network_dir()
+
+  # two files for each user in the cache
+  length(list.files(network_dir, full.names = TRUE)) / 2
+}
+
 #' Check if nodes are in the cache
 #'
 #' @param nodes User ids of Twitter users. *Not* the screen name.

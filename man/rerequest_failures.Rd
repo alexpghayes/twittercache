@@ -12,6 +12,7 @@ the requests log and the failure log at the same time.
 }
 \seealso{
 Other managing failures: \code{\link{clear_failures}},
-  \code{\link{get_failures}}
+  \code{\link{get_failures}},
+  \code{\link{get_number_of_failures}}
 }
 \concept{managing failures}
