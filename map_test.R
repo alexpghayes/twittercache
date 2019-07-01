@@ -17,6 +17,17 @@ rm(edge_data)
 
 gc()
 
-ig <- igraph::graph_from_data_frame(ed32)
+tg <- tidygraph::as_tbl_graph(ed32)
 
-e2
+pryr::object_size(tg)
+
+library(tidygraph)
+
+map2 <- map %>%
+  mutate_at(vars(id32), as.character)
+
+tg2 <- tg %>%
+  activate(nodes) %>%
+  left_join(map2, by = c("name" = "id32"))
+
+pryr::object_size(tg2)
