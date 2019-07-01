@@ -37,14 +37,16 @@ get_number_of_requests <- function() {
 #' @family managing requests
 #'
 clear_requests <- function() {
-  saveRDS(character(0), request_path())
+  readr::write_rds(character(0), request_path())
 }
 
 #' Add users to the request queue
 #'
 #' Note that this only adds users to the request queue, but
 #' does not do any sampling of the Twitter graph itself. To
-#' sample the Twitter graph, run [sample_twitter_graph()].
+#' sample the Twitter graph, run [sample_twitter_graph()]. As
+#' of version `0.2.0` we no longer add protected users to the
+#' the request queue.
 #'
 #' @param screen_names A characters vector of screen names or user ids
 #'   to the to the request queue.
@@ -62,7 +64,9 @@ request <- function(screen_names, neighborhood = FALSE) {
   create_cache_if_needed()
   token <- get_registered_token(1)
 
-  found <- rtweet::lookup_users(screen_names, token = token)
+  found <- rtweet::lookup_users(screen_names, token = token) %>%
+    dplyr::filter(!protected)
+
   not_found <- setdiff(screen_names, found$screen_name)
 
   if (length(not_found) > 0)
@@ -97,7 +101,7 @@ add_request <- function(user_ids) {
   current_requests <- get_request_ids()
   all_requests <- c(current_requests, user_ids)
 
-  saveRDS(all_requests, request_path())
+  readr::write_rds(all_requests, request_path())
   refresh_requests()  # remove reduplicates and completes
 }
 
@@ -113,7 +117,7 @@ get_request_ids <- function() {
   if (!file.exists(request_path()))
     return(character(0))
 
-  readRDS(request_path())
+  readr::read_rds(request_path())
 }
 
 #' Get the path to the request queue
@@ -149,6 +153,6 @@ refresh_requests <- function() {
   already_in_cache <- vapply(requests, in_cache, logical(1L))
 
   incomplete_requests <- unique(requests[!already_in_cache])
-  saveRDS(incomplete_requests, request_path())
+  readr::write_rds(incomplete_requests, request_path())
 }
 

@@ -24,3 +24,8 @@ Automatically removes information on protected users.
 Takes a moment. We recommend saving the resulting graph in a \code{.rds}
 file for fast access later on.
 }
+\seealso{
+Other exporting: \code{\link{get_edge_data}},
+  \code{\link{get_node_data}}
+}
+\concept{exporting}

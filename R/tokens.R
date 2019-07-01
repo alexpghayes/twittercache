@@ -64,7 +64,7 @@ register_token <- function(token) {
   }
 
   new_token_path <- file.path(token_dir, glue("{num_tokens + 1}.rds"))
-  saveRDS(token, new_token_path)
+  readr::write_rds(token, new_token_path)
 }
 
 #' Check how many tokens are in your cache
@@ -141,7 +141,7 @@ get_registered_token <- function(index) {
     stop("`index` must be between 1 and `get_number_of_tokens().", call. = FALSE)
 
   token_path <- file.path(get_token_dir(), glue("{index}.rds"))
-  readRDS(token_path)
+  readr::read_rds(token_path)
 }
 
 #' Get all registered tokens in a list
@@ -169,7 +169,7 @@ get_all_tokens <- function() {
 
   for (i in 1:num_tokens) {
     token_path <- file.path(token_dir, glue("{i}.rds"))
-    tokens[[i]] <- readRDS(token_path)
+    tokens[[i]] <- readr::read_rds(token_path)
   }
 
   tokens

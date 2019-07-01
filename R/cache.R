@@ -87,6 +87,76 @@ in_cache <- function(nodes) {
   have_node
 }
 
+#' Update a version 0.1.0 cache to a version 0.2.0 cache
+#'
+#' Slow. Sets `sampled_at` column in node data based on the
+#' most recent time the node data was modified. This
+#' should be the time of sampling unless you've been
+#' manually moving files around or something.
+#'
+#' If this crashes halfway through (which should only
+#' happen due to user interrupt, fingers crossed)
+#' you *should* be able to just run it again.
+#'
+#' You only need to update your cache if you sampled
+#' users using `twittercache` version 0.1.0.
+#'
+#' @export
+#'
+update_cache <- function() {
+
+  all_files <- list.files(get_network_dir(), full.names = TRUE)
+  is_node <- stringr::str_detect(all_files, "node")
+
+  node_files <- all_files[is_node]
+  edge_files <- all_files[!is_node]
+
+  for (file in node_files) {
+    logger::log_info("Updating {file}")
+    update_node_file(file)
+  }
+
+  for (file in edge_files) {
+    logger::log_info("Updating {file}")
+    update_edge_file(file)
+  }
+
+  message("Successfully updated cache!")
+}
+
+update_edge_file <- function(edge_path) {
+
+  edge_data <- readr::read_rds(edge_path)
+
+  if (nrow(edge_data) < 1) {
+    file.remove(edge_path)
+  }
+
+ edge_data %>%
+    dplyr::mutate_all(as.integer64) %>%
+    readr::write_rds(edge_path)
+}
+
+update_node_file <- function(node_path) {
+  node_data <- readr::read_rds(node_path)
+
+  if (nrow(node_data) < 1) {
+    file.remove(node_path)
+  }
+
+  node_data <- node_data %>%
+    dplyr::mutate_at(dplyr::vars(user_id), as.integer64)
+
+  if (!("sampled_at" %in% colnames(node_data)))
+    node_data <- tibble::add_column(
+      node_data,
+      sampled_at = file.info(node_path)$ctime,
+      .before = TRUE
+    )
+
+  readr::write_rds(node_data, node_path)
+}
+
 create_cache_if_needed <- function() {
   cache_dir <- get_cache_dir()
 
@@ -95,7 +165,6 @@ create_cache_if_needed <- function() {
     dir.create(get_network_dir())
     dir.create(get_token_dir())
   }
-
 }
 
 get_cache_dir <- function() {
@@ -111,9 +180,9 @@ get_edge_path <- function(node) {
 }
 
 cache_edge_data <- function(node, edge_data) {
-  saveRDS(edge_data, get_edge_path(node))
+  readr::write_rds(edge_data, get_edge_path(node))
 }
 
 cache_node_data <- function(node, node_data) {
-  saveRDS(node_data, get_node_path(node))
+  readr::write_rds(node_data, get_node_path(node))
 }

@@ -17,7 +17,9 @@ added the request queue as well. Defaults to \code{FALSE}.}
 \description{
 Note that this only adds users to the request queue, but
 does not do any sampling of the Twitter graph itself. To
-sample the Twitter graph, run \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}.
+sample the Twitter graph, run \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}. As
+of version \code{0.2.0} we no longer add protected users to the
+the request queue.
 }
 \seealso{
 \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}

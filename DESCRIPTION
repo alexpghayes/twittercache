@@ -1,6 +1,6 @@
 Package: twittercache
 Title: Sample the Twitter Graph and Cache It Locally
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R: 
     person(given = "Alex",
            family = "Hayes",
@@ -29,10 +29,13 @@ Imports:
     tidygraph,
     usethis,
     magrittr,
-    stringr
+    stringr,
+    readr
 Suggests: 
     knitr,
     rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/alexpghayes/twittercache
 BugReports: https://github.com/alexpghayes/twittercache/issues
+Depends: 
+    bit64

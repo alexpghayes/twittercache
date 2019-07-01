@@ -127,16 +127,20 @@ visit <- function(node, token) {
 
   logger::log_debug("Attempt to get friends and followers for {node}.")
 
+  time <- Sys.time()
+
   friends <- safe_get_friends(node, token = token)
   followers <- safe_get_followers(node, token = token)
 
   logger::log_debug("Successful sampled friends and followers for {node}.")
 
-  edge_data <- dplyr::bind_rows(friends, followers)
+  edge_data <- dplyr::bind_rows(friends, followers) %>%
+    dplyr::mutate_all(as.integer64)
 
   logger::log_debug("Looking up user data for {node}")
 
-  node_data <- rtweet::lookup_users(node, token = token)
+  node_data <- rtweet::lookup_users(node, token = token) %>%
+    tibble::add_column(sampled_at = time, .before = TRUE)
 
   logger::log_debug("Writing data to cache for {node}")
 

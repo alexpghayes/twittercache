@@ -37,7 +37,7 @@ get_number_of_failures <- function() {
 #' @family managing failures
 #'
 clear_failures <- function() {
-  saveRDS(character(0), failure_path())
+  readr::write_rds(character(0), failure_path())
 }
 
 #' Re-request users in the failure log
@@ -86,7 +86,7 @@ add_failure <- function(user_ids) {
   current_failures <- get_failure_ids()
   all_failures <- c(current_failures, user_ids)
 
-  saveRDS(all_failures, failure_path())
+  readr::write_rds(all_failures, failure_path())
   refresh_failures()
 }
 
@@ -103,7 +103,7 @@ refresh_failures <- function() {
   sampled <- vapply(failures, in_cache, logical(1L))
 
   still_dont_have <- unique(failures[!sampled])
-  saveRDS(still_dont_have, failure_path())
+  readr::write_rds(still_dont_have, failure_path())
 }
 
 #' Get user IDs from the failure log
@@ -118,5 +118,5 @@ get_failure_ids <- function() {
   if (!file.exists(failure_path()))
     return(character(0))
 
-  readRDS(failure_path())
+  readr::read_rds(failure_path())
 }

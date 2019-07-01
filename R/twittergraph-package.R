@@ -1,5 +1,7 @@
 #' @keywords internal
 #' @importFrom glue glue
+#' @import bit64
+#'
 "_PACKAGE"
 
 # The following block is used by usethis to automatically manage
