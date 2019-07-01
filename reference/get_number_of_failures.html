@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Re-request users in the failure log — rerequest_failures • twittercache</title>
+<title>Get the number of users in the failure log — get_number_of_failures • twittercache</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,10 +30,9 @@
 
 
 
-<meta property="og:title" content="Re-request users in the failure log — rerequest_failures" />
+<meta property="og:title" content="Get the number of users in the failure log — get_number_of_failures" />
 
-<meta property="og:description" content="Also empties the failure log, because users can't be in both
-the requests log and the failure log at the same time." />
+<meta property="og:description" content="Get the number of users in the failure log" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -100,25 +99,28 @@ the requests log and the failure log at the same time." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Re-request users in the failure log</h1>
+    <h1>Get the number of users in the failure log</h1>
     <small class="dont-index">Source: <a href='https://github.com/alexpghayes/twittercache/blob/master/R/failures.R'><code>R/failures.R</code></a></small>
-    <div class="hidden name"><code>rerequest_failures.Rd</code></div>
+    <div class="hidden name"><code>get_number_of_failures.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Also empties the failure log, because users can't be in both
-the requests log and the failure log at the same time.</p>
+    <p>Get the number of users in the failure log</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rerequest_failures</span>()</pre>
+    <pre class="usage"><span class='fu'>get_number_of_failures</span>()</pre>
         
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>An integer.</p>
+    
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Other managing failures: <code><a href='clear_failures.html'>clear_failures</a></code>,
   <code><a href='get_failures.html'>get_failures</a></code>,
-  <code><a href='get_number_of_failures.html'>get_number_of_failures</a></code></p></div>
+  <code><a href='rerequest_failures.html'>rerequest_failures</a></code></p></div>
     
 
   </div>
@@ -126,6 +128,8 @@ the requests log and the failure log at the same time.</p>
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       
+      <li><a href="#value">Value</a></li>
+
       <li><a href="#see-also">See also</a></li>
           </ul>
 
