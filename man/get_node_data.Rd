@@ -46,6 +46,7 @@ accounts.
 }
 \seealso{
 Other exporting: \code{\link{get_edge_data}},
+  \code{\link{get_neighborhood_as_tidygraph}},
   \code{\link{get_network_as_tidygraph}}
 }
 \concept{exporting}

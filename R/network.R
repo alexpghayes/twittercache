@@ -1,3 +1,66 @@
+#' Get the neighborhood around a seed as a tidygraph
+#'
+#' Takes a moment. We recommend saving the resulting graph in a `.rds`
+#' file for fast access later on.
+#'
+#' @param seed Screen name of user to consider.
+#'
+#' @param core_only Logical indicating whether or not to return
+#'   just the core nodes. A node in the "core" of the cache if you
+#'   explicitly requested it. Equivalently, if it has its own file
+#'   in the cache. Other nodes will appear in the graph because of
+#'   they are connected to nodes in the core. So we have complete
+#'   information about the friendships of nodes in the core, and
+#'   only very partial information about the remaining nodes.
+#'   Defaults to `TRUE`.
+#'
+#' @return The network as a [tidygraph::tbl_graph()] object.
+#'   Does not contain information on protected users.
+#'
+#' @export
+#' @family exporting
+#'
+get_neighborhood_as_tidygraph <- function(seed, core_only = TRUE) {
+
+  stopifnot(user_in_cache(seed))
+
+  seed_id <- rtweet::lookup_users(seed, token = get_registered_token(1))$user_id
+  seed_edge_data <- readr::read_rds(get_edge_path(seed_id))
+
+  # repeat the seed nodes for code easy atm
+  # watch for bit64 fun
+  all_ids <- unique(c(
+    as.integer64(seed_id),
+    seed_edge_data$to,
+    seed_edge_data$from)
+  )
+
+  # only users we managed to sample
+  all_ids <- purrr::keep(all_ids, in_cache)
+
+  # get the edge data
+  edge_data <- purrr::map_dfr(all_ids, ~readr::read_rds(get_edge_path(.x))) %>%
+    dplyr::distinct()
+
+  gc(verbose = FALSE)
+
+  node_data <- purrr::map_dfr(all_ids, ~readr::read_rds(get_node_path(.x))) %>%
+    dplyr::mutate_at(dplyr::vars(user_id), as.character)
+
+  gc(verbose = FALSE)
+
+  graph <- edge_data %>%
+    tidygraph::as_tbl_graph() %>%
+    tidygraph::activate(nodes) %>%
+    tidygraph::left_join(node_data, by = c("name" = "user_id"))
+
+  if (core_only)
+    graph <- tidygraph::filter(graph, !is.na(status_id))
+
+  graph
+}
+
+
 #' Get the cached graph as a tidygraph
 #'
 #' Takes a moment. We recommend saving the resulting graph in a `.rds`

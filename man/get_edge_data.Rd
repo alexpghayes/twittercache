@@ -28,10 +28,17 @@ As your cache grows in size, this gets slow pretty
 quickly. I recommend saving the results to an \code{.rds}
 file for convenience. I also recommend subsetting
 as much as possible to the part of the graph you
-are interested in.
+are interested in. \code{get_edge_data()} is typically
+much slower than \code{\link[=get_node_data]{get_node_data()}}.
+}
+\details{
+If you only need the graph and don't need any data
+on the nodes, coerce immediately to an \code{igraph}
+object with \code{igraph::from_edgelist()}.
 }
 \seealso{
-Other exporting: \code{\link{get_network_as_tidygraph}},
+Other exporting: \code{\link{get_neighborhood_as_tidygraph}},
+  \code{\link{get_network_as_tidygraph}},
   \code{\link{get_node_data}}
 }
 \concept{exporting}

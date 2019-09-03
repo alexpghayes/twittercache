@@ -74,7 +74,7 @@ sample_twitter_graph <- function() {
       break
 
     waited_so_far <- as.numeric(Sys.time() - start_time, units = "secs")
-    to_wait <- round(max(0, 60 - waited_so_far))
+    to_wait <- round(max(0, 65 - waited_so_far))
 
     logger::log_info("Remaining requests: {length(requests)}")
 
