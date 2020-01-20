@@ -1,6 +1,7 @@
 #' @keywords internal
 #' @importFrom glue glue
-#' @import bit64
+#' @importFrom DBI dbConnect dbDisconnect dbWriteTable
+#' @importFrom RSQLite SQLite
 #'
 "_PACKAGE"
 

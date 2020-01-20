@@ -13,7 +13,9 @@ An integer.
 Get the number of users in the request queue
 }
 \seealso{
-Other managing requests: \code{\link{clear_requests}},
-  \code{\link{get_requests}}, \code{\link{request}}
+Other managing requests: 
+\code{\link{clear_requests}()},
+\code{\link{get_requests}()},
+\code{\link{request}()}
 }
 \concept{managing requests}

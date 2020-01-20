@@ -16,8 +16,8 @@ failures, or have been using your tokens outside of \code{twittercache}
 this is extremely unlikely to cause a problem.
 }
 \seealso{
-Other managing failures: \code{\link{clear_failures}},
-  \code{\link{get_number_of_failures}},
-  \code{\link{rerequest_failures}}
+Other managing failures: 
+\code{\link{clear_failures}()},
+\code{\link{rerequest_failures}()}
 }
 \concept{managing failures}

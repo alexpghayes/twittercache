@@ -1,18 +1,233 @@
 #' Check if a user is in the cache
 #'
 #' @param users A vector screen names or user IDs of Twitter users.
+#'   All one or the other -- don't mix screen names and user IDs.
 #'
 #' @return A logical vector.
 #'
 #' @export
 #' @family cache management
+#' @import dbplyr
 #'
-user_in_cache <- function(users) {
+users_in_cache <- function(users) {
 
   create_cache_if_needed()
 
-  nodes <- rtweet::lookup_users(users)$user_id
-  in_cache(nodes)
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  matches <- tbl(con, "nodes") %>%
+    filter(user_id %in% users | screen_name %in% users) %>%
+    select(user_id, screen_name) %>%
+    collect()
+
+  match_vector <- c(matches$user_id, matches$screen_name)
+
+  users %in% match_vector
+}
+
+
+# cases:
+#  good users, already in the cache: return the data
+#  bad users, already failed to sample them
+#  good users, not in the cache yet
+#  bad users, not in the cache yet
+
+cached_get_friends <- function(users) {
+
+  # find the users who aren't in the cache
+  new_users <- users[!users_in_cache(users)]
+
+  # add them to the cache
+
+  # return the data from the cache
+}
+
+#' Add new users to the cache
+#'
+#' Notes:
+#'
+#'   - The calling function is responsible for making sure that the user
+#'     isn't already in the cache
+#'
+#'   - If user A and user B are friends, and we add both user A
+#'     and user B, we will duplicate any edges between A and B.
+#'
+#'   - Doesn't record information about protected accounts, treats these
+#'     as failed queries.
+#'
+#'   - We only take the first 5,000 friends and 5,000 followers
+#'     for the time being. The idea is that for important edges,
+#'     the edge will get picked up from the other node. This may
+#'     miss out on edges between node both with huge follower
+#'     and following counts, but who cares about those.
+#'
+#' @param users
+#'
+#' @return
+#' @export
+#' @include failures.R
+#'
+#' @importFrom dplyr filter select_if bind_rows select mutate everything
+add_users_to_cache <- function(users) {
+
+  if (length(users) < 1) {
+    return(invisible())
+  }
+
+  # TODO: log this action
+
+  # TODO: use safe_ version
+  # if all the accounts are bad, might get NULL, or a data frame
+  # with zero rows
+  raw_user_data <- rtweet::lookup_users(users)
+
+  # all the accounts are bad, we couldn't get user data for
+  # any of them
+  if (is.null(raw_user_data) || nrow(raw_user_data) < 1) {
+    add_users_to_failed(users)
+    return(invisible())
+  }
+
+  user_data <- raw_user_data %>%
+    mutate(sampled_at = Sys.time()) %>%
+    select_if(~!is.list(.x)) %>%
+    select(screen_name, sampled_at, user_id, created_at, everything())
+
+  # if we accidentally got information on a protected user,
+  # ditch it
+  protected <- user_data %>%
+    filter(protected) %>%
+    pull(user_id)
+
+  if (length(protected) > 0)
+    add_users_to_failed(protected)
+
+  new_users <- user_data %>%
+    filter(!protected)
+
+  # now we want to get the edges for each of the good new users
+  # and store the edges using user_ids, not screen_name
+
+  new_edges <- safe_get_followers(new_users$user_id) %>%
+    bind_rows(safe_get_friends(new_users$user_id))
+
+  # add all of this information to the database
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  dbWriteTable(con, "nodes", new_users, append = TRUE)
+  dbWriteTable(con, "edges", new_edges, append = TRUE)
+
+
+  # we may have attempted to sample these users before
+  # and failed. if that is the case, update their failure
+  # state
+  for (index in 1:nrow(new_users)) {
+
+    # the original request could have been in terms of the user_id
+    # or the screen name, so check them both
+
+    user_id <- new_users$user_id[index]
+    screen_name <- new_users$screen_name[index]
+
+    if (failed_to_sample_users(user_id))
+      remove_from_failed(user_id)
+
+    if (failed_to_sample_users(screen_name))
+      remove_from_failed(screen_name)
+  }
+
+  invisible()
+}
+
+# remember to disconnect!
+get_cache_db_connection <- function() {
+  dbConnect(SQLite(), get_cache_path())
+}
+
+#' Remove suspended and deleted accounts from the cache
+#'
+#' - Also deduplicate edges
+#'
+#' Not yet implemented.
+#'
+#' @export
+clean_cache <- function() {
+  create_cache_if_needed()
+  .NotYetImplemented()
+}
+
+get_cache_path <- function() {
+  sys_path <- Sys.getenv("TWITTERCACHE_PATH")
+
+  if (sys_path == "")
+    return(path.expand("~/.twittercache.sqlite"))
+
+  sys_path
+}
+
+# s <- sprintf("create table %s(%s, primary key(%s))", "DF",
+#              paste(names(DF), collapse = ", "),
+#              names(DF)[1])
+# dbGetQuery(con, s)
+# dbWriteTable(con, "DF", DF, append = TRUE, row.names = FALSE)
+
+create_cache_if_needed <- function() {
+  if (!cache_exists()) {
+    con <- get_cache_db_connection()
+    on.exit(dbDisconnect(con))
+
+    # TODO: set indices
+    #
+    # https://stackoverflow.com/questions/6401583/set-or-create-primary-key-in-sqlite-from-r
+
+    dbWriteTable(con, "nodes", empty_node_data)
+    dbWriteTable(con, "edges", empty_edge_data)
+    dbWriteTable(con, "failed", empty_failed_queries)
+  }
+}
+
+
+#' Peak at the size of your Twittercache
+#'
+#' @return
+#' @export
+#'
+#' @importFrom dplyr tbl pull
+print_cache <- function(count_edges = TRUE) {
+
+  if (!cache_exists())
+    stop("No twittercache detected.", call. = FALSE)
+
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  num_nodes <- tbl(con, "nodes") %>%
+    pull(protected) %>%
+    length()
+
+  num_failed <- tbl(con, "failed") %>%
+    pull(query) %>%
+    length()
+
+  # optional since slow
+  if (count_edges) {
+    num_edges <- tbl(con, "edges") %>%
+      pull(from) %>%
+      length()
+  } else {
+    num_edges <- "???"
+  }
+
+  glue(
+    "Details about your twittercache\n",
+    "\n",
+    "  - {num_nodes} node(s)\n",
+    "  - {num_failed} failed sampling attempt(s)\n",
+    "  - {num_edges} edge(s)",
+    .trim = FALSE
+  )
 }
 
 #' Remove all sampled users from the cache
@@ -23,166 +238,32 @@ user_in_cache <- function(users) {
 #' @export
 #' @family cache management
 #'
-clear_cache <- function() {
+delete_cache <- function() {
 
-  create_cache_if_needed()
+  if (!cache_exists())
+    stop("No twittercache detected.", call. = FALSE)
 
-  if (usethis::ui_yeah("I want to remove all Twitter user data from my cache")) {
+  msg <- "I want to remove all Twitter user data from my cache"
 
-    network_dir <- get_network_dir()
-    user_files <- list.files(network_dir, full.names = TRUE)
-
-    for (file in user_files)
-      file.remove(file)
-  }
+  if (usethis::ui_yeah(msg))
+    invisible(file.remove(get_cache_path()))
 }
 
-#' Remove suspended and deleted accounts from the cache
-#'
-#' Not yet implemented.
-#'
-#' @export
-clean_cache <- function() {
-  create_cache_if_needed()
-  .NotYetImplemented()
+cache_exists <- function() {
+  file.exists(get_cache_path())
 }
 
-#' See how many users are in the cache
-#'
-#' @return An integer.
-#'
-#' @export
-#'
-get_cache_size <- function() {
-
-  create_cache_if_needed()
-  network_dir <- get_network_dir()
-
-  # two files for each user in the cache
-  length(list.files(network_dir, full.names = TRUE)) / 2
+get_node_table <- function() {
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+  collect(tbl(con, "nodes"))
 }
 
-#' Check if nodes are in the cache
-#'
-#' @param nodes User ids of Twitter users. *Not* the screen name.
-#'
-#' @return A logical vector.
-#' @keywords internal
-#'
-in_cache <- function(nodes) {
+# only returns unique edges
+get_edge_table <- function() {
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
 
-  have_node <- logical(length(nodes))
-  cache_dir <- get_cache_dir()
-
-  for (i in seq_along(nodes)) {
-
-    node <- nodes[i]
-
-    edge_path <- get_edge_path(node)
-    node_path <- get_node_path(node)
-
-    have_node[i] <- file.exists(edge_path) && file.exists(node_path)
-  }
-
-  have_node
+  collect(distinct(tbl(con, "nodes")))
 }
 
-#' Update a version 0.1.0 cache to a version 0.2.0 cache
-#'
-#' Slow. Sets `sampled_at` column in node data based on the
-#' most recent time the node data was modified. This
-#' should be the time of sampling unless you've been
-#' manually moving files around or something.
-#'
-#' If this crashes halfway through (which should only
-#' happen due to user interrupt, fingers crossed)
-#' you *should* be able to just run it again.
-#'
-#' You only need to update your cache if you sampled
-#' users using `twittercache` version 0.1.0.
-#'
-#' @export
-#'
-update_cache <- function() {
-
-  all_files <- list.files(get_network_dir(), full.names = TRUE)
-  is_node <- stringr::str_detect(all_files, "node")
-
-  node_files <- all_files[is_node]
-  edge_files <- all_files[!is_node]
-
-  for (file in node_files) {
-    logger::log_info("Updating {file}")
-    update_node_file(file)
-  }
-
-  for (file in edge_files) {
-    logger::log_info("Updating {file}")
-    update_edge_file(file)
-  }
-
-  message("Successfully updated cache!")
-}
-
-update_edge_file <- function(edge_path) {
-
-  edge_data <- readr::read_rds(edge_path)
-
-  if (nrow(edge_data) < 1) {
-    file.remove(edge_path)
-  }
-
- edge_data %>%
-    dplyr::mutate_all(as.integer64) %>%
-    readr::write_rds(edge_path)
-}
-
-update_node_file <- function(node_path) {
-  node_data <- readr::read_rds(node_path)
-
-  if (nrow(node_data) < 1) {
-    file.remove(node_path)
-  }
-
-  node_data <- node_data %>%
-    dplyr::mutate_at(dplyr::vars(user_id), as.integer64)
-
-  if (!("sampled_at" %in% colnames(node_data)))
-    node_data <- tibble::add_column(
-      node_data,
-      sampled_at = file.info(node_path)$ctime,
-      .before = TRUE
-    )
-
-  readr::write_rds(node_data, node_path)
-}
-
-create_cache_if_needed <- function() {
-  cache_dir <- get_cache_dir()
-
-  if (!dir.exists(cache_dir)) {
-    dir.create(cache_dir)
-    dir.create(get_network_dir())
-    dir.create(get_token_dir())
-  }
-}
-
-get_cache_dir <- function() {
-  path.expand("~/.twittergraph")
-}
-
-get_node_path <- function(node) {
-  file.path(get_network_dir(), paste0(node, "_node.rds"))
-}
-
-get_edge_path <- function(node) {
-  file.path(get_network_dir(), paste0(node, "_edge.rds"))
-}
-
-cache_edge_data <- function(node, edge_data) {
-  readr::write_rds(edge_data, get_edge_path(node))
-}
-
-cache_node_data <- function(node, node_data) {
-  readr::write_rds(node_data, get_node_path(node))
-}

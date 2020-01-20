@@ -17,7 +17,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Imports: 
     rtweet,
     dplyr,
@@ -39,3 +39,15 @@ URL: https://github.com/alexpghayes/twittercache
 BugReports: https://github.com/alexpghayes/twittercache/issues
 Depends: 
     bit64
+Collate: 
+    'api_calls.R'
+    'failures.R'
+    'cache.R'
+    'rate-limits.R'
+    'request.R'
+    'rtweet.R'
+    'sampling.R'
+    'tokens.R'
+    'twittergraph-package.R'
+    'utils-pipe.R'
+    'utils.R'

@@ -14,8 +14,8 @@ Each token is saved in the token directory as:
 }
 \details{
 \itemize{
-\item \code{1.rds}
-\item \code{2.rds}
+\item \verb{1.rds}
+\item \verb{2.rds}
 \item ...
 }
 }

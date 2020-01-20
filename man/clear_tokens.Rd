@@ -12,7 +12,8 @@ of the how irritating it is to register tokens in the
 first place.
 }
 \seealso{
-Other managing tokens: \code{\link{get_number_of_tokens}},
-  \code{\link{register_token}}
+Other managing tokens: 
+\code{\link{get_number_of_tokens}()},
+\code{\link{register_token}()}
 }
 \concept{managing tokens}

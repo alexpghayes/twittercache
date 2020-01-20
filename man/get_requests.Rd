@@ -16,8 +16,9 @@ requests, or have been using your tokens outside of \code{twittercache}
 this is extremely unlikely to cause a problem.
 }
 \seealso{
-Other managing requests: \code{\link{clear_requests}},
-  \code{\link{get_number_of_requests}},
-  \code{\link{request}}
+Other managing requests: 
+\code{\link{clear_requests}()},
+\code{\link{get_number_of_requests}()},
+\code{\link{request}()}
 }
 \concept{managing requests}

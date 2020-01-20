@@ -18,14 +18,15 @@ added the request queue as well. Defaults to \code{FALSE}.}
 Note that this only adds users to the request queue, but
 does not do any sampling of the Twitter graph itself. To
 sample the Twitter graph, run \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}. As
-of version \code{0.2.0} we no longer add protected users to the
+of version \verb{0.2.0} we no longer add protected users to the
 the request queue.
 }
 \seealso{
 \code{\link[=sample_twitter_graph]{sample_twitter_graph()}}
 
-Other managing requests: \code{\link{clear_requests}},
-  \code{\link{get_number_of_requests}},
-  \code{\link{get_requests}}
+Other managing requests: 
+\code{\link{clear_requests}()},
+\code{\link{get_number_of_requests}()},
+\code{\link{get_requests}()}
 }
 \concept{managing requests}

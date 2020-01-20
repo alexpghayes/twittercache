@@ -13,7 +13,8 @@ An integer.
 Check how many tokens are in your cache
 }
 \seealso{
-Other managing tokens: \code{\link{clear_tokens}},
-  \code{\link{register_token}}
+Other managing tokens: 
+\code{\link{clear_tokens}()},
+\code{\link{register_token}()}
 }
 \concept{managing tokens}

@@ -10,7 +10,9 @@ clear_requests()
 Empty the request queue
 }
 \seealso{
-Other managing requests: \code{\link{get_number_of_requests}},
-  \code{\link{get_requests}}, \code{\link{request}}
+Other managing requests: 
+\code{\link{get_number_of_requests}()},
+\code{\link{get_requests}()},
+\code{\link{request}()}
 }
 \concept{managing requests}

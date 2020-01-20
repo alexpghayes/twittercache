@@ -50,7 +50,8 @@ for (token in rtweet_tokens)
 
 }
 \seealso{
-Other managing tokens: \code{\link{clear_tokens}},
-  \code{\link{get_number_of_tokens}}
+Other managing tokens: 
+\code{\link{clear_tokens}()},
+\code{\link{get_number_of_tokens}()}
 }
 \concept{managing tokens}
