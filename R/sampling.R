@@ -21,16 +21,3 @@ sample_snowball <- function(
 
   sample_snowball(friends, hops - 1)
 }
-
-sample_ppr <- function(users) {
-
-  if (!requireNamespace("aPPR", quietly = TRUE))
-    stop(
-      "Must install the development package RoheLab/aPPR from Github ",
-      "for this functionality.",
-      call. = FALSE
-    )
-
-  # TODO
-
-}

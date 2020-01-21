@@ -26,23 +26,6 @@ users_in_cache <- function(users) {
   users %in% match_vector
 }
 
-
-# cases:
-#  good users, already in the cache: return the data
-#  bad users, already failed to sample them
-#  good users, not in the cache yet
-#  bad users, not in the cache yet
-
-cached_get_friends <- function(users) {
-
-  # find the users who aren't in the cache
-  new_users <- users[!users_in_cache(users)]
-
-  # add them to the cache
-
-  # return the data from the cache
-}
-
 #' Add new users to the cache
 #'
 #' Notes:
@@ -66,7 +49,6 @@ cached_get_friends <- function(users) {
 #'
 #' @return
 #' @export
-#' @include failures.R
 #'
 #' @importFrom dplyr filter select_if bind_rows select mutate everything
 add_users_to_cache <- function(users) {
@@ -118,7 +100,6 @@ add_users_to_cache <- function(users) {
 
   dbWriteTable(con, "nodes", new_users, append = TRUE)
   dbWriteTable(con, "edges", new_edges, append = TRUE)
-
 
   # we may have attempted to sample these users before
   # and failed. if that is the case, update their failure
