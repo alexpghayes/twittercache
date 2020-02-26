@@ -51,6 +51,7 @@ users_in_cache <- function(users) {
 #' @export
 #'
 #' @importFrom dplyr filter select_if bind_rows select mutate everything
+#' @import socialsampler
 add_users_to_cache <- function(users) {
 
   if (length(users) < 1) {
@@ -62,7 +63,7 @@ add_users_to_cache <- function(users) {
   # TODO: use safe_ version
   # if all the accounts are bad, might get NULL, or a data frame
   # with zero rows
-  raw_user_data <- rtweet::lookup_users(users)
+  raw_user_data <- safe_lookup_users(users)
 
   # all the accounts are bad, we couldn't get user data for
   # any of them
