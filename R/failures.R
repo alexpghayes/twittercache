@@ -56,7 +56,7 @@ rerequest_failures <- function() {
 
 add_users_to_failed <- function(users) {
 
-  new_failed <- tibble(query = users)
+  new_failed <- tibble::tibble(query = users)
 
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))

@@ -4,7 +4,7 @@
 \alias{cache_get_friends}
 \title{Title}
 \usage{
-cache_get_friends(users)
+cache_get_friends(users, ...)
 }
 \arguments{
 \item{users}{}

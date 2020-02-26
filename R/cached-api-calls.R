@@ -12,7 +12,7 @@
 #' @export
 #'
 #' @importFrom dplyr collect distinct
-cache_get_friends <- function(users) {
+cache_get_friends <- function(users, ...) {
 
   existing_good <- users[users_in_cache(users)]
   existing_bad <- users[failed_to_sample_users(users)]
