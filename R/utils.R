@@ -1,5 +1,11 @@
-empty_edgelist <- function() {
-  tibble::tibble(from = character(0), to = character(0))
-}
-
-utils::globalVariables(c("query", "protected", "status_id", "nodes"))
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+NULL

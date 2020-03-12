@@ -56,6 +56,10 @@ We can push this arbritrarily high (provided you have the tokens) by parallelizi
 
 It's at `~/.twittergraph/`.
 
+**Why is the cache so large?**
+
+Twitter user IDs are 64 bit integers, which are expensive to store. Also, the Twitter graph is super dense, which makes storing the edgelist painful.
+
 **This whole cache thing is a bad idea**
 
 Probably, but it works for me.

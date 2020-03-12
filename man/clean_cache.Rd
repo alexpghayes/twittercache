@@ -7,5 +7,10 @@
 clean_cache()
 }
 \description{
+\itemize{
+\item Also deduplicate edges
+}
+}
+\details{
 Not yet implemented.
 }

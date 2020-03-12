@@ -1,6 +1,6 @@
 Package: twittercache
 Title: Sample the Twitter Graph and Cache It Locally
-Version: 0.1.0
+Version: 0.2.0.9000
 Authors@R: 
     person(given = "Alex",
            family = "Hayes",
@@ -17,7 +17,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Imports: 
     rtweet,
     dplyr,
@@ -26,10 +26,10 @@ Imports:
     tibble,
     purrr,
     igraph,
-    tidygraph,
     usethis,
     magrittr,
-    stringr
+    stringr,
+    readr
 Suggests: 
     knitr,
     rmarkdown
