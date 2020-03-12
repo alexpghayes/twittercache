@@ -33,6 +33,10 @@ devtools::install_github("alexpghayes/twittercache")
   - Use `cache_get_friends()` instead of `get_friends()`
   - Use `cache_get_followers()` instead of `get_followers()`
 
+## Get the cached data
+
+  - Use `get_node_table()` and `get_edge_table()`
+
 ## Frequently asked questions
 
 **How do you manage the API rate limits?**
