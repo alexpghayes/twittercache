@@ -33,6 +33,21 @@ install.packages("devtools")
 devtools::install_github("alexpghayes/twittercache")
 ```
 
+## Inspect the current twittercache
+
+
+```{r}
+library(twittercache)
+
+print_cache()
+```
+
+## What kind of data can I cache?
+
+- edges
+- nodes
+- you can get information on nodes without getting information on edges
+
 ## `rtweet` replacements
 
 - Use `cache_lookup_users()` instead of `lookup_users()`
