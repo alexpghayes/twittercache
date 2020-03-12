@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @import logger
 #' @importFrom glue glue
 #' @importFrom DBI dbConnect dbDisconnect dbWriteTable
 #' @importFrom RSQLite SQLite

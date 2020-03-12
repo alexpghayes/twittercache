@@ -1,6 +1,7 @@
 library(RSQLite)
 library(rtweet)
 library(dplyr)
+library(socialsampler)
 
 ##### create empty tables with the correct types -------------------------------
 
@@ -19,9 +20,12 @@ library(dplyr)
 user <- "alexpghayes"
 
 node_data <- lookup_users(user) %>%
-  mutate(sampled_at = Sys.time()) %>%
+  mutate(
+    sampled_at = Sys.time(),
+    has_edges = FALSE
+  ) %>%
   select_if(~!is.list(.x)) %>%
-  select(screen_name, sampled_at, user_id, created_at, everything())
+  select(screen_name, sampled_at, user_id, has_edges, created_at, everything())
 
 empty_node_data <- node_data[0, ]
 

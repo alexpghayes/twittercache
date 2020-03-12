@@ -4,11 +4,19 @@
 \alias{users_in_cache}
 \title{Check if a user is in the cache}
 \usage{
-users_in_cache(users)
+users_in_cache(users, has_edges = NULL)
 }
 \arguments{
 \item{users}{A vector screen names or user IDs of Twitter users.
 All one or the other -- don't mix screen names and user IDs.}
+
+\item{has_edges}{If \code{NULL} returns whether the user is present in the
+cache, with or without edges. If \code{TRUE}, returns whether the user is
+present in the cache \emph{and} additionally has edge data available.
+If \code{FALSE}, returns whether the user is present in the cache \emph{and}
+their edge data is unavailable. Note that the user sets returned
+when \code{has_edges} is \code{TRUE} and \code{FALSE} are disjoint; setting \code{NULL}
+returns the union of these two sets.}
 }
 \value{
 A logical vector.

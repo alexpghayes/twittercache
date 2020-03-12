@@ -3,23 +3,44 @@
 #' @param users A vector screen names or user IDs of Twitter users.
 #'   All one or the other -- don't mix screen names and user IDs.
 #'
+#' @param has_edges If `NULL` returns whether the user is present in the
+#'   cache, with or without edges. If `TRUE`, returns whether the user is
+#'   present in the cache *and* additionally has edge data available.
+#'   If `FALSE`, returns whether the user is present in the cache *and*
+#'   their edge data is unavailable. Note that the user sets returned
+#'   when `has_edges` is `TRUE` and `FALSE` are disjoint; setting `NULL`
+#'   returns the union of these two sets.
+#'
 #' @return A logical vector.
 #'
 #' @export
 #' @family cache management
 #' @import dbplyr
 #'
-users_in_cache <- function(users) {
+users_in_cache <- function(users, has_edges = NULL) {
+
+  stopifnot(is.null(has_edges) || length(has_edges) == 1)
+  stopifnot(is.null(has_edges) || is.logical(has_edges))
 
   create_cache_if_needed()
 
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
 
-  matches <- tbl(con, "nodes") %>%
-    filter(user_id %in% users | screen_name %in% users) %>%
-    select(user_id, screen_name) %>%
-    collect()
+  if (!is.null(has_edges)) {
+    matches <- tbl(con, "nodes") %>%
+      filter(
+        user_id %in% users | screen_name %in% users,
+        has_edges == !!has_edges
+      ) %>%
+      select(user_id, screen_name) %>%
+      collect()
+  } else {
+    matches <- tbl(con, "nodes") %>%
+      filter(user_id %in% users | screen_name %in% users) %>%
+      select(user_id, screen_name) %>%
+      collect()
+  }
 
   match_vector <- c(matches$user_id, matches$screen_name)
 
@@ -52,7 +73,10 @@ users_in_cache <- function(users) {
 #'
 #' @importFrom dplyr filter select_if bind_rows select mutate everything
 #' @import socialsampler
-add_users_to_cache <- function(users) {
+add_users_to_cache <- function(users, edges) {
+
+  stopifnot(is.logical(edges))
+  stopifnot(length(edges) == 1)
 
   if (length(users) < 1) {
     return(invisible())
@@ -73,9 +97,14 @@ add_users_to_cache <- function(users) {
   }
 
   user_data <- raw_user_data %>%
-    mutate(sampled_at = Sys.time()) %>%
-    select_if(~!is.list(.x)) %>%
-    select(screen_name, sampled_at, user_id, created_at, everything())
+    mutate(
+      sampled_at = Sys.time(),
+      has_edges = edges
+    ) %>%
+    select_if(
+      ~!is.list(.x)
+    ) %>%
+    select(screen_name, sampled_at, user_id, has_edges, created_at, everything())
 
   # if we accidentally got information on a protected user,
   # ditch it
@@ -89,18 +118,22 @@ add_users_to_cache <- function(users) {
   new_users <- user_data %>%
     filter(!protected)
 
-  # now we want to get the edges for each of the good new users
-  # and store the edges using user_ids, not screen_name
-
-  new_edges <- safe_get_followers(new_users$user_id) %>%
-    bind_rows(safe_get_friends(new_users$user_id))
-
   # add all of this information to the database
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
 
   dbWriteTable(con, "nodes", new_users, append = TRUE)
-  dbWriteTable(con, "edges", new_edges, append = TRUE)
+
+  if (edges) {
+
+    # now we want to get the edges for each of the good new users
+    # and store the edges using user_ids, not screen_name
+
+    new_edges <- safe_get_followers(new_users$user_id) %>%
+      bind_rows(safe_get_friends(new_users$user_id))
+
+    dbWriteTable(con, "edges", new_edges, append = TRUE)
+  }
 
   # we may have attempted to sample these users before
   # and failed. if that is the case, update their failure
@@ -119,6 +152,66 @@ add_users_to_cache <- function(users) {
     if (failed_to_sample_users(screen_name))
       remove_from_failed(screen_name)
   }
+
+  invisible()
+}
+
+#' Update information on a user already in the cache to include edge data
+#'
+#' Notes:
+#'
+#'   - The calling function is responsible for making sure that the user
+#'     is in the cache, but only node data is present, no edge data
+#'
+#'   - If user A and user B are friends, and we add both user A
+#'     and user B, we will duplicate any edges between A and B.
+#'
+#'   - We only take the first 5,000 friends and 5,000 followers
+#'     for the time being. The idea is that for important edges,
+#'     the edge will get picked up from the other node. This may
+#'     miss out on edges between node both with huge follower
+#'     and following counts, but who cares about those.
+#'
+#' @param users
+#'
+#' @return
+#' @export
+#'
+#' @importFrom dplyr filter select_if bind_rows select mutate everything
+#' @import socialsampler
+add_users_edge_data_to_cache <- function(users) {
+
+  if (length(users) < 1) {
+    return(invisible())
+  }
+
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  # potentially need to convert `screen_name` to `user_id`
+
+  user_data <- tbl(con, "nodes") %>%
+    filter(user_id %in% users | screen_name %in% users) %>%
+    select(screen_name, user_id) %>%
+    collect()
+
+  # now we want to get the edges for each of the good new users
+  # and store the edges using user_ids, not screen_name
+
+  new_edges <- safe_get_followers(user_data$user_id) %>%
+    bind_rows(safe_get_friends(user_data$user_id))
+
+  dbWriteTable(con, "edges", new_edges, append = TRUE)
+
+  # update the edge status for each node
+  ## TODO: do this more efficiently!!
+
+  new_node_data <- tbl(con, "nodes") %>%
+    collect()
+
+  new_node_data$has_edges[new_node_data$user_id %in% user_data$user_id] <- TRUE
+
+  dbWriteTable(con, "nodes", new_node_data, overwrite = TRUE)
 
   invisible()
 }
@@ -157,6 +250,9 @@ get_cache_path <- function() {
 
 create_cache_if_needed <- function() {
   if (!cache_exists()) {
+
+    log_debug(glue("No twittercache exists, creating one now."))
+
     con <- get_cache_db_connection()
     on.exit(dbDisconnect(con))
 
@@ -176,7 +272,7 @@ create_cache_if_needed <- function() {
 #' @return
 #' @export
 #'
-#' @importFrom dplyr tbl pull
+#' @importFrom dplyr tbl count pull
 print_cache <- function(count_edges = TRUE) {
 
   if (!cache_exists())
@@ -185,19 +281,22 @@ print_cache <- function(count_edges = TRUE) {
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
 
-  num_nodes <- tbl(con, "nodes") %>%
-    pull(protected) %>%
-    length()
+  num_nodes_by_edges <- tbl(con, "nodes") %>%
+    count(has_edges) %>%
+    pull(n)
+
+  num_nodes_with_edges <- num_nodes_by_edges[2]
+  num_nodes <- sum(num_nodes_by_edges)
 
   num_failed <- tbl(con, "failed") %>%
-    pull(query) %>%
-    length()
+    count() %>%
+    pull(n)
 
   # optional since slow
   if (count_edges) {
     num_edges <- tbl(con, "edges") %>%
-      pull(from) %>%
-      length()
+      count() %>%
+      pull(n)
   } else {
     num_edges <- "???"
   }
@@ -205,7 +304,7 @@ print_cache <- function(count_edges = TRUE) {
   glue(
     "Details about your twittercache\n",
     "\n",
-    "  - {num_nodes} node(s)\n",
+    "  - {num_nodes} node(s) // {num_nodes_with_edges} with edge data\n",
     "  - {num_failed} failed sampling attempt(s)\n",
     "  - {num_edges} edge(s)",
     .trim = FALSE
@@ -241,11 +340,12 @@ get_node_table <- function() {
   collect(tbl(con, "nodes"))
 }
 
-# only returns unique edges
+# may return duplicated edges. call clean_cache ahead of
+# time to get nicer data
 get_edge_table <- function() {
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
 
-  collect(distinct(tbl(con, "nodes")))
+  collect(tbl(con, "edges"))
 }
 

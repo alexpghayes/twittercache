@@ -14,11 +14,14 @@
 #' @importFrom dplyr collect distinct
 cache_get_friends <- function(users, ...) {
 
-  existing_good <- users[users_in_cache(users)]
+  existing_good <- users[users_in_cache(users, has_edges = TRUE)]
+  existing_no_edges <- users[users_in_cache(users, has_edges = FALSE)]
   existing_bad <- users[failed_to_sample_users(users)]
 
-  new_users <- setdiff(users, c(existing_good, existing_bad))
-  add_users_to_cache(new_users)
+  new_users <- setdiff(users, c(existing_good, existing_no_edges, existing_bad))
+
+  add_users_to_cache(new_users, edges = TRUE)
+  add_users_edge_data_to_cache(existing_no_edges)
 
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
@@ -49,11 +52,14 @@ cache_get_friends <- function(users, ...) {
 #'
 cache_get_followers <- function(users) {
 
-  existing_good <- users[users_in_cache(users)]
+  existing_good <- users[users_in_cache(users, has_edges = TRUE)]
+  existing_no_edges <- users[users_in_cache(users, has_edges = FALSE)]
   existing_bad <- users[failed_to_sample_users(users)]
 
-  new_users <- setdiff(users, c(existing_good, existing_bad))
-  add_users_to_cache(new_users)
+  new_users <- setdiff(users, c(existing_good, existing_no_edges, existing_bad))
+
+  add_users_to_cache(new_users, edges = TRUE)
+  add_users_edge_data_to_cache(existing_no_edges)
 
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
@@ -84,11 +90,12 @@ cache_get_followers <- function(users) {
 #'
 cache_lookup_users <- function(users) {
 
-  existing_good <- users[users_in_cache(users)]
+  existing_good <- users[users_in_cache(users, has_edges = NULL)]
   existing_bad <- users[failed_to_sample_users(users)]
 
   new_users <- setdiff(users, c(existing_good, existing_bad))
-  add_users_to_cache(new_users)
+
+  add_users_to_cache(new_users, edges = FALSE)
 
   con <- get_cache_db_connection()
   on.exit(dbDisconnect(con))
