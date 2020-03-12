@@ -7,12 +7,11 @@
 rerequest_failures()
 }
 \description{
-Also empties the failure log, because users can't be in both
-the requests log and the failure log at the same time.
+Also empties the failure log.
 }
 \seealso{
-Other managing failures: \code{\link{clear_failures}},
-  \code{\link{get_failures}},
-  \code{\link{get_number_of_failures}}
+Other managing failures: 
+\code{\link{clear_failures}()},
+\code{\link{get_failures}()}
 }
 \concept{managing failures}

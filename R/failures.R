@@ -11,24 +11,14 @@
 #' @family managing failures
 #'
 get_failures <- function() {
-  ids <- get_failure_ids()
 
-  if (length(ids) < 1)
-    return(character(0))
+  create_cache_if_needed()
 
-  rtweet::lookup_users(ids, token = get_registered_token(1))$screen_name
-}
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
 
-#' Get the number of users in the failure log
-#'
-#' @return An integer.
-#' @export
-#'
-#' @family managing failures
-#'
-get_number_of_failures <- function() {
-  refresh_failures()
-  length(get_failure_ids())
+  tbl(con, "failed") %>%
+    collect()
 }
 
 #' Empty the failure log
@@ -37,86 +27,68 @@ get_number_of_failures <- function() {
 #' @family managing failures
 #'
 clear_failures <- function() {
-  saveRDS(character(0), failure_path())
+
+  create_cache_if_needed()
+
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  # TODO: set indices as in create_cache_if_needed()
+  dbWriteTable(con, "failed", empty_failed_queries, overwrite = TRUE)
 }
 
 #' Re-request users in the failure log
 #'
-#' Also empties the failure log, because users can't be in both
-#' the requests log and the failure log at the same time.
+#' Also empties the failure log.
 #'
 #' @export
 #' @family managing failures
 #'
 rerequest_failures <- function() {
-  failures <- get_failure_ids()
-
-  if (length(failures) < 1)
-    stop("No failures in the failure log.", call. = FALSE)
-
+  failed_queries <- get_failures()$query
   clear_failures()
-  request(failures)
+
+  for (q in failed_queries) {
+    if (!users_in_cache(q))
+      add_users_to_cache(q)
+  }
 }
 
-#' Get the path to the failure log
-#'
-#' The failure log is a character vector of user IDs (never
-#' screen names) that gets stored as an `.rds` file.
-#'
-#' @return Path to `.rds` file.
-#'
-#' @keywords internal
-#'
-failure_path <- function() {
-  cache_dir <- get_cache_dir()
-  file.path(cache_dir, "failures.rds")
+add_users_to_failed <- function(users) {
+
+  new_failed <- tibble::tibble(query = users)
+
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
+
+  dbWriteTable(con, "failed", new_failed, append = TRUE)
+
+  invisible()
 }
 
-#' Add users to the failure log
-#'
-#' Also refreshes the failure log.
-#'
-#' @param user_ids One or most user IDS (*not* screen names) to add
-#'   to the failure log.
-#'
-#' @keywords internal
-#'
-add_failure <- function(user_ids) {
-
-  current_failures <- get_failure_ids()
-  all_failures <- c(current_failures, user_ids)
-
-  saveRDS(all_failures, failure_path())
-  refresh_failures()
+# user could be a user_id or a screen_name here
+# example of failure PutinRF_Eng
+failed_to_sample_users <- function(users) {
+  users %in% get_failures()$query
 }
+#
+# u <- c("PutinRF_Eng", "alexpghayes")
+#
+# failed_to_sample_users(u)
 
-#' Update the failure log
-#'
-#' Removes duplicates and users that have been successfully
-#' sampled from the failure log.
-#'
-#' @keywords internal
-#'
-refresh_failures <- function() {
 
-  failures <- get_failure_ids()
-  sampled <- vapply(failures, in_cache, logical(1L))
+# user could be a user_id or a screen_name here
+# inelegant (rewrites entire failure table instead of removing rows)
+# but whatever
+remove_from_failed <- function(user) {
 
-  still_dont_have <- unique(failures[!sampled])
-  saveRDS(still_dont_have, failure_path())
-}
+  new_failed <- get_failures() %>%
+    filter(!(query %in% user))
 
-#' Get user IDs from the failure log
-#'
-#' @return Character vector of users IDs that couldn't be
-#'   sampled.
-#'
-#' @keywords internal
-#'
-get_failure_ids <- function() {
+  con <- get_cache_db_connection()
+  on.exit(dbDisconnect(con))
 
-  if (!file.exists(failure_path()))
-    return(character(0))
+  dbWriteTable(con, "failed", new_failed, overwrite = TRUE)
 
-  readRDS(failure_path())
+  invisible()
 }
