@@ -46,23 +46,9 @@ devtools::install_github("alexpghayes/twittercache")
 
 Currently we just sample one node a minute. This complies with the Twitter API rate limits, but only if you don't use the registered tokens for anything else while sampling.
 
-**How efficient is this whole process?**
-
-We currently sample at about a maximum rate of 60 users / minute. So if you have ~60 or fewer tokens, we sample as fast as possible while respecting the Twitter API rate limits. 
-
-We can push this arbritrarily high (provided you have the tokens) by parallelizing a key loop in `sample_twitter_graph()`. I don't have 60 tokens so I'm not worrying about this yet, but let me know if this is something you need.
-
 **Where is the cache itself?**
 
 It's at `~/.twittergraph/`.
-
-**Why is the cache so large?**
-
-Twitter user IDs are 64 bit integers, which are expensive to store. Also, the Twitter graph is super dense, which makes storing the edgelist painful.
-
-**This whole cache thing is a bad idea**
-
-Probably, but it works for me.
 
 **What about users with big follower counts? Do you sample all the followers?**
 
@@ -73,10 +59,6 @@ Recall that you can pick up an edge in the network from either node. We recommen
 **What happens when I try to sample protected users?**
 
 We remove these users from the sample at export time.
-
-**What is this mess of weird logger calls?**
-
-If someone knows better practices for logging things, please reach out, I really have no clue what I'm doing here.
 
 ## Contributing
 
