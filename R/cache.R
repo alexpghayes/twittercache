@@ -135,22 +135,42 @@ add_users_to_cache <- function(users, edges) {
     dbWriteTable(con, "edges", new_edges, append = TRUE)
   }
 
+  log_debug("Checking if successfully sampled users were previous failures")
+
+  log_debug(glue("Number of users: {nrow(users)}"))
+  log_debug(glue("Number of new users: {nrow(new_users)}"))
+  log_debug(glue("Number of protected: {nrow(protected)}"))
+
+  # input users
+  # raw collected user data
+  # unprotected users
+  # protected users
+
+  num_new_users <- nrow(new_users)
+
   # we may have attempted to sample these users before
   # and failed. if that is the case, update their failure
   # state
-  for (index in 1:nrow(new_users)) {
 
-    # the original request could have been in terms of the user_id
-    # or the screen name, so check them both
+  if (num_new_users > 0) {
+    for (index in 1:num_new_users) {
 
-    user_id <- new_users$user_id[index]
-    screen_name <- new_users$screen_name[index]
+      # the original request could have been in terms of the user_id
+      # or the screen name, so check them both
 
-    if (failed_to_sample_users(user_id))
-      remove_from_failed(user_id)
+      user_id <- new_users$user_id[index]
+      screen_name <- new_users$screen_name[index]
 
-    if (failed_to_sample_users(screen_name))
-      remove_from_failed(screen_name)
+      log_debug(glue("Index: {index}"))
+      log_debug(glue("User ID: {user_id}"))
+      log_debug(glue("Screen name: {screen_name}"))
+
+      if (failed_to_sample_users(user_id))
+        remove_from_failed(user_id)
+
+      if (failed_to_sample_users(screen_name))
+        remove_from_failed(screen_name)
+    }
   }
 
   invisible()
