@@ -9,7 +9,6 @@ template:
   params:
     bootswatch: paper
 
-
 reference:
   - title: Core functions
     desc: ~
