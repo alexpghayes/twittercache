@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Pipe operator — %&gt;% • twittercache</title>
+<title>Check if a user is in the cache — users_in_cache • twittercache</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Pipe operator — %&gt;%" />
-<meta property="og:description" content="See magrittr::%&amp;gt;% for details." />
+<meta property="og:title" content="Check if a user is in the cache — users_in_cache" />
+<meta property="og:description" content="Check if a user is in the cache" />
 
 
 
@@ -111,18 +111,44 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Pipe operator</h1>
-    <small class="dont-index">Source: <a href='https://github.com/alexpghayes/twittercache/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
-    <div class="hidden name"><code>pipe.Rd</code></div>
+    <h1>Check if a user is in the cache</h1>
+    <small class="dont-index">Source: <a href='https://github.com/alexpghayes/twittercache/blob/master/R/cache.R'><code>R/cache.R</code></a></small>
+    <div class="hidden name"><code>users_in_cache.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>See <code>magrittr::%&gt;%</code> for details.</p>
+    <p>Check if a user is in the cache</p>
     </div>
 
-    <pre class="usage"><span class='va'>lhs</span> <span class='op'>%&gt;%</span> <span class='va'>rhs</span></pre>
+    <pre class="usage"><span class='fu'>users_in_cache</span><span class='op'>(</span><span class='va'>users</span>, has_edges <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>users</th>
+      <td><p>A vector screen names or user IDs of Twitter users.
+All one or the other -- don't mix screen names and user IDs.</p></td>
+    </tr>
+    <tr>
+      <th>has_edges</th>
+      <td><p>If <code>NULL</code> returns whether the user is present in the
+cache, with or without edges. If <code>TRUE</code>, returns whether the user is
+present in the cache <em>and</em> additionally has edge data available.
+If <code>FALSE</code>, returns whether the user is present in the cache <em>and</em>
+their edge data is unavailable. Note that the user sets returned
+when <code>has_edges</code> is <code>TRUE</code> and <code>FALSE</code> are disjoint; setting <code>NULL</code>
+returns the union of these two sets.</p></td>
+    </tr>
+    </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>A logical vector.</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p>Other cache management: 
+<code><a href='delete_cache.html'>delete_cache</a>()</code></p></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
