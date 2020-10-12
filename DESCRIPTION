@@ -35,7 +35,8 @@ Imports:
     usethis
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    covr
 VignetteBuilder: 
     knitr
 Remotes: 
