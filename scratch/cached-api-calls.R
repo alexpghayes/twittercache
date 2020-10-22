@@ -1,24 +1,89 @@
 library(socialsampler)
+library(twittercache)
+library(aPPR)
 
-#'
-#'
-#' Note:
-#'   - Make sure (not in this function) to add failed user
-#'   searches to the DB w/ attribute failed=TRUE
+
+
 get_friends <- function(users, ...) {
-  existing_users <- get_nodes() %>%
-    extract2(1) %>%
-    rename(from=username, to=friends) %>%
-    summarise(across(.fns=as.character)) %>%
-    select(from, to)
+  users <- c(users)
+  if(length(users) == 0)
+    return(invisible())
 
-  users[users %in% existing_users$from] %>%
-    socialsampler::safe_get_friends() %>%
-    bind_rows(existing_users)
+  existing_users <- db_get_node(username=users, grab_friends=TRUE)
+
+  if(length(unique(existing_users$from)) != length(users)) {
+    new_users <- users[!(users %in% existing_users$from)] %>%
+      rtweet::get_friends() %>%
+      rename(from=user, to=user_id)
+
+    for(user in unique(new_users$from)) {
+      # Add the user, do the checking for if the user already exists in
+      # the add_node function itself
+      info <- rtweet::lookup_users(user)
+      if(info$protected) {
+        # Skip protected users
+        # TODO: Add protected users to the DB with some flag so that
+        #       they don't get repeatedly searched for
+        next
+      }
+
+      friends <- new_users$to[new_users$from == user]
+      curr_date <- base::date()
+      add_node(username=user, id=info$user_id, friends=friends, friends_sampled_at=curr_date)
+    }
+  }
+
+  tryCatch({
+    # Try to return the merged tibbles
+    existing_users %>% bind_rows(new_users)
+  }, error = function(e) {
+    # We get an error if new_users doesn't exist
+    existing_users
+  })
 }
 
-format_neo4j <- function(x) x %>%
-  extract2(1) %>%
-  rename(from=username) %>%
-  summarise(across(.fns=as.character)) %>%
-  select(from)
+
+
+get_followers <- function(users, ...) {
+  users <- c(users)
+  if(length(users) == 0)
+    return(invisible())
+
+  existing_users <- db_get_node(username=users, grab_friends=FALSE)
+
+  if(length(unique(existing_users$to)) < length(users)) {
+    new_users <- NULL
+    for(user in users[!(users %in% existing_users$from)]) {
+      new_users <- rtweet::get_followers(user) %>%
+        bind_cols(to=user) %>%
+        bind_rows(new_users)
+    }
+    new_users <- new_users %>%
+      rename(from=user_id)
+
+    for(user in unique(new_users$to)) {
+      # Add the user, do the checking for if the user already exists in
+      # the add_node function itself
+      info <- rtweet::lookup_users(user)
+      if(info$protected) {
+        # Skip protected users
+        # TODO: Add protected users to the DB with some flag so that
+        #       they don't get repeatedly searched for
+        next
+      }
+
+      # Why the fuck is GabeExists in every single query???
+      followers <- new_users$from[new_users$to == user]
+      curr_date <- base::date()
+      add_node(username=user, id=info$user_id, followers=followers, followers_sampled_at=curr_date)
+    }
+  }
+
+  tryCatch({
+    # Try to return the merged tibbles
+    existing_users %>% bind_rows(new_users)
+  }, error = function(e) {
+    # We get an error if new_users doesn't exist
+    existing_users
+  })
+}

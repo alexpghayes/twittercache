@@ -1,5 +1,7 @@
 library(neo4r)
 library(rtweet)
+library(tidyverse)
+library(magrittr)
 
 con <- neo4j_api$new(
   url = "http://localhost:7474",
@@ -8,13 +10,15 @@ con <- neo4j_api$new(
 )
 
 
+# Define an operator to more easily extract friends/followers dynamically
+`%>>>%` <- function(a, condition)
+  if(condition) a %>% use_series(friends) else a %>% use_series(followers)
+
+
 #' Gets a node from the DB with attributes matching those in the list provided
 #'
-#' @param attributes a list of attributes that the node should match
-#' @param type a string designating the node type
-#'
 #' @return a tibble of matching nodes
-get_nodes <- function(username=NULL, id=NULL, friends=NULL, followers=NULL) {
+db_get_node <- function(username=NULL, id=NULL, friends=NULL, followers=NULL, grab_friends=TRUE) {
   # TODO: Add variable safety checks
   with_phrase <- ""
   if(!is.null(friends)) {
@@ -42,57 +46,56 @@ get_nodes <- function(username=NULL, id=NULL, friends=NULL, followers=NULL) {
     match_phrase <- paste0('WHERE ', substr(match_phrase, 6, nchar(match_phrase)))
 
   nodes <- noquote(paste0(with_phrase, 'MATCH (n:User) ', match_phrase, ' RETURN n'))
-  print(nodes)
 
-  print(nodes)
+  # TODO: Make a check for no nodes returned before extract2ing
+  nodes <- paste(nodes) %>%
+    call_neo4j(con, type="graph")
 
-  # TODO: gonna have to use call_neo4j(con, type="graph").  The default call_neo4j
-  #       gives a terrible return format
+  if(length(nodes) == 0)
+    return(NULL)
 
-  paste(nodes) %>%
-    call_neo4j(con)
+  nodes <- nodes %>%
+    extract2(1)
+
+  # Format the data into a 2-column tibble with the data we care about (from and to)
+  to_add <- nodes$properties[[1]] %>>>% grab_friends
+
+  tib <- tibble(from=nodes$properties[[1]]$username,
+                to=as.character(to_add))
+
+  if(length(nodes$properties) < 2)
+    return(tib)
+
+  for(i in seq(2, length(nodes$properties), 1)) {
+    to_add <- nodes$properties[[i]] %>>>% grab_friends
+    if(is.null(to_add))
+      next
+
+    tib <- tib %>%
+      add_row(from=nodes$properties[[i]]$username,
+              to=as.character(to_add))
+  }
+
+  tib
 }
 
 
-#' Adds a node to the DB
-#' TODO: add an edges parameter
-#'
-#' @param attributes a list of attributes to give the node
-#' @param type a string designating the node type
+#' Adds a SINGLE node to the DB
 #'
 #' @return a tibble containing the added node
-add_node <- function(attributes=NULL, type=NULL) {
-  attr_str <- ""
-  if(!is.null(attributes)) {
-    for(i in seq(1, length(attributes))) {
-      unlisted <- unlist(attributes[[i]])
-      is_numeric <- is.numeric(unlisted)
-      is_iterable <- is.list(attributes[[i]]) || is.vector(attributes[[i]]) ||
-        is.array(attributes[[i]]) || is.table(attributes[[i]])
-      attr_str <- paste(attr_str,
-                        names(attributes)[[i]],
-                        if(is_iterable) ':[' else ':',
-                        if(!is_numeric) '"' else '',
-                        paste(unlist(attributes[[i]]),
-                              collapse=if(is.numeric(unlist(attributes[[i]]))) ',' else '","'),
-                        if(!is_numeric) '"' else '',
-                        if(is_iterable) ']' else '',
-                        if(i != length(attributes)) ',' else '',
-                        sep="")
-    }
-  }
+add_node <- function(username, id, friends=NULL, followers=NULL,
+                     friends_sampled_at=NULL, followers_sampled_at=NULL) {
+  added_node <- paste0('MERGE (n:User {id:', id, '}) ON CREATE SET n.username = "', username, '"',
+                       if(!is.null(friends))
+                         paste0(' SET n.friends=["', paste(friends, collapse='", "'), '"], n.friends_sampled_at="', friends_sampled_at, '"'),
+                       if(!is.null(followers))
+                         paste0(' SET n.followers=["', paste(followers, collapse='", "'), '"], n.followers_sampled_at="', followers_sampled_at, '"'),
+                       ' RETURN n'
+                       )
 
-  added_node <- noquote(paste0('CREATE (n',
-                             if(is.null(type)) '' else paste0(':', type),
-                             ' {',
-                             attr_str,
-                             '}) RETURN n',
-                             sep="")
-                      )
+  print(added_node)
 
-  # TODO: gonna have to use call_neo4j(con, type="graph").  The default call_neo4j
-  #       gives a terrible return format
-
-  paste(added_node) %>%
-    call_neo4j(con)
+  paste(noquote(added_node)) %>%
+    call_neo4j(con, type="graph") %>%
+    extract2(1)
 }
