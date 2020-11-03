@@ -53,6 +53,9 @@ get_followers <- function(users, ...) {
 
   if(length(unique(existing_users$to)) < length(users)) {
     new_users <- NULL
+
+    # TODO: this boolean will have to be reworked because $from won't work anymore
+    #       ((after reworking db_get_nodes()))
     for(user in users[!(users %in% existing_users$from)]) {
       new_users <- rtweet::get_followers(user) %>%
         bind_cols(to=user) %>%
@@ -72,7 +75,6 @@ get_followers <- function(users, ...) {
         next
       }
 
-      # Why the fuck is GabeExists in every single query???
       followers <- new_users$from[new_users$to == user]
       curr_date <- base::date()
       add_node(username=user, id=info$user_id, followers=followers, followers_sampled_at=curr_date)
@@ -87,3 +89,25 @@ get_followers <- function(users, ...) {
     existing_users
   })
 }
+
+
+
+
+lookup_users <- function(users, ...) {
+  users <- c(users)
+  if(length(users) == 0)
+    return(invisible())
+
+  # TODO: reword the db_get_nodes function so that it works how we want it to now
+  existing_users <- db_get_nodes(users=users)
+
+  # TODO: this boolean will have to be reworked because $from won't work anymore
+  #       ((after reworking db_get_nodes()))
+  new_users <- users[!(users %in% existing_users$from)]
+}
+
+
+
+
+
+

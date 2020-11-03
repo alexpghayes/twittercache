@@ -19,6 +19,10 @@ con <- neo4j_api$new(
 #'
 #' @return a tibble of matching nodes
 db_get_node <- function(username=NULL, id=NULL, friends=NULL, followers=NULL, grab_friends=TRUE) {
+  if(con$ping() != 200) {
+    stop("Neo4J database cannot be reached.")
+  }
+
   # TODO: Add variable safety checks
   with_phrase <- ""
   if(!is.null(friends)) {
@@ -46,6 +50,8 @@ db_get_node <- function(username=NULL, id=NULL, friends=NULL, followers=NULL, gr
     match_phrase <- paste0('WHERE ', substr(match_phrase, 6, nchar(match_phrase)))
 
   nodes <- noquote(paste0(with_phrase, 'MATCH (n:User) ', match_phrase, ' RETURN n'))
+
+  print(nodes)
 
   # TODO: Make a check for no nodes returned before extract2ing
   nodes <- paste(nodes) %>%
@@ -92,8 +98,6 @@ add_node <- function(username, id, friends=NULL, followers=NULL,
                          paste0(' SET n.followers=["', paste(followers, collapse='", "'), '"], n.followers_sampled_at="', followers_sampled_at, '"'),
                        ' RETURN n'
                        )
-
-  print(added_node)
 
   paste(noquote(added_node)) %>%
     call_neo4j(con, type="graph") %>%
