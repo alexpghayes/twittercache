@@ -10,12 +10,13 @@ con <- neo4j_api$new(
 )
 
 
-#' The same as call_neo4j(...) but warnings are suppressed
+#' @param query the CYPHER query to be passed to call_neo4j
+#' @param con the neo4j connection object to be passed to call_neo4j
+#'
+#' @return the return value from call_neo4j
 sup4j <- function(query, con) {
-  suppressWarnings(call_neo4j(query, con))
+  suppressMessages(call_neo4j(query, con))
 }
-
-n_friendsfollowers = 150
 
 
 #' @param users A character vector of user ids (never screen names)
@@ -327,17 +328,11 @@ add_new_friends <- function(user_ids, sample_size) {
   # return friends of each user
   user_ids <- c(user_ids)
 
-  if(is.na(user_ids))
+  if(length(user_ids) <= 1 && is.na(user_ids))
     return(empty_user_edges())
 
-  update_users(user_ids, lookup=FALSE)
-
-  tbl <- NULL
-  for(user_id in user_ids)
-    tbl <- tbl %>%
-      bind_rows(db_connect_friends(user_id))
-
-  tbl
+  update_users(user_ids, lookup=FALSE, get_friends=TRUE, sample_size=sample_size)
+  db_get_friends(user_ids)
 }
 
 
@@ -351,17 +346,11 @@ add_new_followers <- function(user_ids, sample_size) {
   # return followers of each user
   user_ids <- c(user_ids)
 
-  if(is.na(user_ids))
+  if(length(user_ids) <= 1 && is.na(user_ids))
     return(empty_user_edges())
 
-  update_users(user_ids, lookup=FALSE)
-
-  tbl <- NULL
-  for(user_id in user_ids)
-    tbl <- tbl %>%
-      bind_rows(db_connect_followers(user_id))
-
-  tbl
+  update_users(user_ids, lookup=FALSE, get_followers=TRUE, sample_size=sample_size)
+  db_get_followers(user_ids)
 }
 
 
@@ -420,5 +409,13 @@ friend_sampling_status <- function(user_ids) {
     sampled_friends_at_is_null = unsampled_users,
     sampled_friends_at_not_null = sampled_users
   )
+}
+
+
+#' HELPER FUNCTION USED TO CLEAR THE DATABASE FOR TESTING,
+#' REMOVE THIS FUNCTION ONCE TESTING IS DONE
+clear____db <- function() {
+  "MATCH (n) DETACH DELETE n" %>%
+    sup4j(con)
 }
 
