@@ -3,6 +3,7 @@ library(rtweet)
 library(tidyverse)
 library(magrittr)
 
+# TODO: Add functions for the user to change connection details
 con <- neo4j_api$new(
   url = "http://localhost:7474",
   user = "neo4j",
@@ -278,7 +279,6 @@ db_get_followers <- function(user_ids) {
                           '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep=''),
                    con)
 
-  print(results)
   if(length(results) != 2) {
     return(empty_user_edges())
   }
