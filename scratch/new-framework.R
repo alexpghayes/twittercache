@@ -25,20 +25,19 @@ sup4j <- function(query, con) {
 #' to one of the User properties. If a user cannot be sampled, should
 #' return nothing for that user. If no users can be sampled, should
 #' return an empty tibble with appropriate columns.
-#'
 lookup_users <- function(user_ids) {
   user_data <- db_lookup_users(user_ids)
   not_in_graph <- setdiff(user_ids, user_data$user_id)
   new_user_data <- update_users(not_in_graph, lookup=TRUE)
+  not_sampled <- filter(user_data, is.na(sampled_at))
 
-  not_sampled <- user_data %>%
-                 filter(is.na(sampled_at))
-  if(dim(not_sampled)[1] == 0)
+  if(dim(not_sampled)[1] == 0) {
     upgraded_user_data <- empty_lookup()
-  else
+  } else {
     upgraded_user_data <- not_sampled %>%
                           pull(user_id) %>%
                           update_users(lookup=TRUE)
+  }
 
   user_data <- user_data %>%
                filter(!is.na(sampled_at))
@@ -51,37 +50,40 @@ lookup_users <- function(user_ids) {
 #' properties.  Used when user data is unavailabale
 empty_lookup <- function() {
   tibble(
-    user_id='.',
-    screen_name='.',
-    protected=FALSE,
-    followers_count=0,
-    friends_count=0,
-    listed_count=0,
-    statuses_count=0,
-    favourites_count=0,
-    account_created_at='.',
-    verified=FALSE,
-    profile_url='.',
-    profile_expanded_url='.',
-    account_lang=FALSE,
-    profile_banner_url='.',
-    profile_background_url='.',
-    profile_image_url='.',
-    name='.',
-    location='.',
-    description='.',
-    url='.',
-    sampled_at='.',
-    sampled_friends_at='.',
-    sampled_followers_at='.'
-  ) %>% slice(0L)
+    user_id=character(0),
+    screen_name=character(0),
+    protected=logical(0),
+    followers_count=numeric(9),
+    friends_count=numeric(9),
+    listed_count=numeric(9),
+    statuses_count=numeric(9),
+    favourites_count=numeric(9),
+    account_created_at=character(0),
+    verified=logical(0),
+    profile_url=character(0),
+    profile_expanded_url=character(0),
+    account_lang=logical(0),
+    profile_banner_url=character(0),
+    profile_background_url=character(0),
+    profile_image_url=character(0),
+    name=character(0),
+    location=character(0),
+    description=character(0),
+    url=character(0),
+    sampled_at=character(0),
+    sampled_friends_at=character(0),
+    sampled_followers_at=character(0)
+  )
 }
 
 
 #' @return an empty 2-column tibble used as a placeholder for
 #' when user data is not available
 empty_user_edges <- function() {
-  tibble(from='.', to='.') %>% slice(0L)
+  tibble(
+    from=character(0),
+    to=character(0)
+  )
 }
 
 
@@ -110,15 +112,18 @@ db_lookup_users <- function(user_ids) {
 }
 
 
-#' @param lookup whether or not data should be gathered from rtweet::lookup_users
-#'               for these users. Should only be false when empty users are being
-#'               added to the DB (e.g. users that are friends with a user who
-#'               *was* looked up)
+#' TODO: Rename this function. This function is used both to update present users
+#' and add new users to the db.
+#'
+#' @param user_ids the user_ids to update
+#' @param lookup should new Twitter profile data be updated for each user_id?
+#' @param sample_size how many friends/followers should be looked up at a time if
+#' the respective argument is set to TRUE?
 #'
 #' @return The tibble of user data, with one row for each (accessible)
 #' user in `users` and one column for each property of `User` nodes
 #' in the graph database.
-update_users <- function(user_ids, sample_size=150, lookup=FALSE, get_friends=FALSE, get_followers=FALSE) {
+update_users <- function(user_ids, sample_size=150, lookup=FALSE) {
   # make sure to set sampled_at to Sys.time() and
   # sampled_friends_at and sampled_followers_at to NULL
   # return data on users
@@ -153,6 +158,7 @@ update_users <- function(user_ids, sample_size=150, lookup=FALSE, get_friends=FA
                            "NULL",
                          ',', sep='')
 
+    # Adds each property to to the Neo4j CYPHER query
     for(j in seq(1, length(properties))) {
       if(is.na(info[[properties[j]]]))
         next
@@ -170,12 +176,6 @@ update_users <- function(user_ids, sample_size=150, lookup=FALSE, get_friends=FA
 
     if(length(new_node) != 0) {
       nodes <- nodes %>% bind_rows(new_node$n)
-      if(get_friends) {
-        db_connect_friends(info$user_id, sample_size)
-      }
-      if(get_followers) {
-        db_connect_followers(info$user_id, sample_size)
-      }
     }
   }
 
@@ -245,10 +245,10 @@ db_connect_followers <- function(user_id, sample_size) {
 #' @return a 2-column tibble edge list with entries from the users in user_ids
 #' to their friends
 db_get_friends <- function(user_ids) {
-  results <- paste('MATCH (from:User),(to:User) WHERE from.user_id in ["',
+  results <- sup4j('MATCH (from:User),(to:User) WHERE from.user_id in ["',
                    paste(user_ids, collapse='","'),
-                   '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='') %>%
-    sup4j(con)
+                   '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='',
+                   con)
 
   if(length(results) != 2)
     return(empty_user_edges())
@@ -263,10 +263,10 @@ db_get_friends <- function(user_ids) {
 #' @return a 2-column tibble edge list with entries from the followers of
 #' the users in user_ids to the users in user_ids
 db_get_followers <- function(user_ids) {
-  results <- paste('MATCH (from:User),(to:User) WHERE to.user_id in ["',
+  results <- sup4j('MATCH (from:User),(to:User) WHERE to.user_id in ["',
                      paste(user_ids, collapse='","'),
-                     '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='') %>%
-             sup4j(con)
+                     '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='',
+                   con)
 
   if(length(results) != 2)
     return(empty_user_edges())
