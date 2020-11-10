@@ -53,11 +53,11 @@ empty_lookup <- function() {
     user_id=character(0),
     screen_name=character(0),
     protected=logical(0),
-    followers_count=numeric(9),
-    friends_count=numeric(9),
-    listed_count=numeric(9),
-    statuses_count=numeric(9),
-    favourites_count=numeric(9),
+    followers_count=numeric(0),
+    friends_count=numeric(0),
+    listed_count=numeric(0),
+    statuses_count=numeric(0),
+    favourites_count=numeric(0),
     account_created_at=character(0),
     verified=logical(0),
     profile_url=character(0),
@@ -103,12 +103,13 @@ db_lookup_users <- function(user_ids) {
                  '"] RETURN n', sep='') %>%
           sup4j(con)
 
-  if(length(data) == 0)
+  if(length(data) == 0) {
     empty_lookup()
-  else
+  } else {
     data %>%
       extract2(1) %>%
       bind_rows(empty_lookup())
+  }
 }
 
 
@@ -185,55 +186,63 @@ update_users <- function(user_ids, sample_size=150, lookup=FALSE) {
 
 #' Gets the friends for the given user_id and creates the edges in the graph.
 #'
-#' @param user_id the user_id of a SINGLE user who is already in the database and
-#'                does not have friend edge data
+#' @param user_ids user_ids who are already in the database and
+#' do not have friend edge data
 #'
 #' @return a nx2 tibble where the <from> column is user_id and the <to> column
-#'         is the user_id of user_id's friends
-db_connect_friends <- function(user_id, sample_size) {
-  friends <- rtweet::get_friends(user_id, n=sample_size)
-  sup4j(paste('MATCH (n:User {user_id:"', user_id, '"}) SET n.sampled_friends_at="', Sys.time(), '"', sep=''),
-        con)
+#' is the user_id of user_id's friends
+db_connect_friends <- function(user_ids, sample_size) {
+  to_ret <- empty_user_edges()
+  for(user_id in user_ids) {
+    friends <- rtweet::get_friends(user_id, n=sample_size)
+    sup4j(paste('MATCH (n:User {user_id:"', user_id, '"}) SET n.sampled_friends_at="', Sys.time(), '"', sep=''),
+          con)
 
-  results <- NULL
-  for(user in friends$user_id) {
-    temp <- sup4j(paste('MERGE (from:User {user_id:"', user_id, '"}) MERGE (to:User {user_id:"', user,
-                        '"}) MERGE (from)-[r:FOLLOWS]->(to)', sep=''),
-                  con)
-    results <- results %>%
-      bind_rows(tibble(from=user_id, to=user))
+    results <- NULL
+    for(user in friends$user_id) {
+      # TODO: Improve this CYPHER query, there should be a way to create all of the edges at once
+      temp <- sup4j(paste('MERGE (from:User {user_id:"', user_id, '"}) MERGE (to:User {user_id:"', user,
+                          '"}) MERGE (from)-[r:FOLLOWS]->(to)', sep=''),
+                    con)
+      results <- results %>%
+        bind_rows(tibble(from=user_id, to=user))
+    }
+
+    if(length(results) == 2) {
+      # If length(results) == 2 then the user existed and everything worked properly
+      to_ret <- to_ret %>%
+                bind_rows(tibble(from=user_id, to=friends$user_id))
+    }
   }
 
-  if(length(results) != 2)
-    return(empty_user_edges())
-
-  tibble(from=user_id, to=friends$user_id)
+  to_ret
 }
 
 
-#' @param user_id a SINGLE user_id to create edges for
+#' @param user_ids a user_ids to create edges for
 #' @param sample_size total number of followers to fetch for user_id
 #'
 #' @return a 2-column tibble edge list from all of user_id's followers to
 #' user_id
-db_connect_followers <- function(user_id, sample_size) {
-  friends <- rtweet::get_followers(user_id, n=sample_size)
-  sup4j(paste('MATCH (n:User {user_id:"', user_id, '"}) SET n.sampled_followers_at="', Sys.time(), '"', sep=''),
-        con)
+db_connect_followers <- function(user_ids, sample_size) {
+  to_ret <- tibble(from=character(0), to=character(0))
+  for(user_id in user_ids) {
+    friends <- rtweet::get_followers(user_id, n=sample_size)
+    sup4j(paste('MATCH (n:User {user_id:"', user_id, '"}) SET n.sampled_followers_at="', Sys.time(), '"', sep=''),
+          con)
 
-  results <- NULL
-  for(user in friends$user_id) {
-    temp <- sup4j(paste('MERGE (to:User {user_id:"', user_id, '"}) MERGE (from:User {user_id:"', user,
-                        '"}) MERGE (from)-[r:FOLLOWS]->(to)', sep=''),
-                  con)
-    results <- results %>%
-      bind_rows(tibble(from=user_id, to=user))
+    for(user in friends$user_id) {
+      # TODO: Improve this CYPHER query, there should be a way to create all of the edges at once
+      temp <- sup4j(paste('MERGE (to:User {user_id:"', user_id, '"}) MERGE (from:User {user_id:"', user,
+                          '"}) MERGE (from)-[r:FOLLOWS]->(to)', sep=''),
+                    con)
+    }
+
+    to_ret <- to_ret %>%
+              bind_rows(tibble(from=friends$user_id, to=user_id))
   }
 
-  if(length(results) != 2)
-    return(empty_user_edges())
-
-  tibble(from=user_id, to=friends$user_id)
+  to_ret
 }
 
 
@@ -245,13 +254,14 @@ db_connect_followers <- function(user_id, sample_size) {
 #' @return a 2-column tibble edge list with entries from the users in user_ids
 #' to their friends
 db_get_friends <- function(user_ids) {
-  results <- sup4j('MATCH (from:User),(to:User) WHERE from.user_id in ["',
-                   paste(user_ids, collapse='","'),
-                   '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='',
+  results <- sup4j(paste('MATCH (from:User),(to:User) WHERE from.user_id in ["',
+                          paste(user_ids, collapse='","'),
+                          '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep=''),
                    con)
 
-  if(length(results) != 2)
+  if(length(results) != 2) {
     return(empty_user_edges())
+  }
 
   tibble(from=results$from.user_id$value, to=results$to.user_id$value)
 }
@@ -263,13 +273,15 @@ db_get_friends <- function(user_ids) {
 #' @return a 2-column tibble edge list with entries from the followers of
 #' the users in user_ids to the users in user_ids
 db_get_followers <- function(user_ids) {
-  results <- sup4j('MATCH (from:User),(to:User) WHERE to.user_id in ["',
-                     paste(user_ids, collapse='","'),
-                     '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep='',
+  results <- sup4j(paste('MATCH (from:User),(to:User) WHERE to.user_id in ["',
+                          paste(user_ids, collapse='","'),
+                          '"] AND (from)-[:FOLLOWS]->(to) RETURN from.user_id, to.user_id', sep=''),
                    con)
 
-  if(length(results) != 2)
+  print(results)
+  if(length(results) != 2) {
     return(empty_user_edges())
+  }
 
   tibble(from=results$from.user_id$value, to=results$to.user_id$value)
 }
@@ -328,11 +340,13 @@ add_new_friends <- function(user_ids, sample_size) {
   # return friends of each user
   user_ids <- c(user_ids)
 
-  if(length(user_ids) <= 1 && is.na(user_ids))
+  if(length(user_ids) <= 1 && is.na(user_ids)) {
     return(empty_user_edges())
+  }
 
-  update_users(user_ids, lookup=FALSE, get_friends=TRUE, sample_size=sample_size)
-  db_get_friends(user_ids)
+  # Add the users to the graph, then give them edge data
+  update_users(user_ids)
+  db_connect_friends(user_ids, sample_size=sample_size)
 }
 
 
@@ -346,11 +360,13 @@ add_new_followers <- function(user_ids, sample_size) {
   # return followers of each user
   user_ids <- c(user_ids)
 
-  if(length(user_ids) <= 1 && is.na(user_ids))
+  if(length(user_ids) <= 1 && is.na(user_ids)) {
     return(empty_user_edges())
+  }
 
-  update_users(user_ids, lookup=FALSE, get_followers=TRUE, sample_size=sample_size)
-  db_get_followers(user_ids)
+  # Add the users to the graph, then give them edge data
+  update_users(user_ids)
+  db_connect_followers(user_ids, sample_size=sample_size)
 }
 
 
